@@ -13,9 +13,8 @@ export async function POST(
     const result = await cancelBooking(bookingId, reason, "customer");
 
     return NextResponse.json({
-      success: true,
-      message: "Booking has been cancelled successfully.",
       ...result,
+      message: "Booking has been cancelled successfully.",
     });
   } catch (error: any) {
     console.error("Booking cancellation error:", error);
