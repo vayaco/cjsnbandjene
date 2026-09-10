@@ -1,0 +1,237 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Business {
+  id                 String         @id @default(cuid())
+  name               String
+  slug               String         @unique
+  logoUrl            String?
+  supportPhone       String?
+  supportEmail       String?
+  cancellationPolicy String?
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+
+  venues             Venue[]
+  users              BusinessUser[]
+  customers          Customer[]
+  bookings           Booking[]
+  auditLogs          AuditLog[]
+  payments           Payment[]
+}
+
+model BusinessUser {
+  id           String    @id @default(cuid())
+  businessId   String
+  name         String
+  email        String    @unique
+  passwordHash String
+  role         String    @default("super_admin") // super_admin, venue_manager, staff
+  venueId      String?   // For venue-scoped managers/staff
+  status       String    @default("active")     // active, inactive
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  business     Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  venue        Venue?    @relation(fields: [venueId], references: [id], onDelete: SetNull)
+}
+
+model Venue {
+  id                  String           @id @default(cuid())
+  businessId          String
+  name                String
+  slug                String           @unique
+  code                String           // e.g. "ANDHERI"
+  address             String
+  city                String           @default("Mumbai")
+  googleMapsUrl       String?
+  phone               String?
+  openTime            String           @default("06:00")
+  closeTime           String           @default("23:00")
+  slotDurationMinutes Int              @default(60)
+  timezone            String           @default("Asia/Kolkata")
+  status              String           @default("active") // active, inactive, temporarily_closed
+  imageUrl            String?
+  description         String?
+  cancellationPolicy  String?
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
+
+  business            Business         @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  resources           Resource[]
+  operatingHours      OperatingHour[]
+  blockedPeriods      BlockedPeriod[]
+  pricingRules        PricingRule[]
+  bookings            Booking[]
+  assignedUsers       BusinessUser[]
+}
+
+model Resource {
+  id             String          @id @default(cuid())
+  venueId        String
+  businessId     String
+  name           String          // e.g. "Court 1", "Turf A"
+  resourceType   String          @default("court") // court, turf, studio, room
+  capacity       Int             @default(4)
+  defaultPrice   Float           @default(500)
+  status         String          @default("active") // active, inactive, maintenance
+  description    String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  venue          Venue           @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  bookings       Booking[]
+  blockedPeriods BlockedPeriod[]
+  slotHolds      SlotHold[]
+}
+
+model OperatingHour {
+  id        String   @id @default(cuid())
+  venueId   String
+  dayOfWeek Int      // 0=Sun, 1=Mon, ..., 6=Sat
+  openTime  String   // "06:00"
+  closeTime String   // "23:00"
+  isOpen    Boolean  @default(true)
+
+  venue     Venue    @relation(fields: [venueId], references: [id], onDelete: Cascade)
+
+  @@unique([venueId, dayOfWeek])
+}
+
+model BlockedPeriod {
+  id         String    @id @default(cuid())
+  venueId    String
+  resourceId String?   // null = entire venue
+  reason     String    // maintenance, tournament, holiday, private
+  startAt    DateTime
+  endAt      DateTime
+  createdAt  DateTime  @default(now())
+
+  venue      Venue     @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  resource   Resource? @relation(fields: [resourceId], references: [id], onDelete: SetNull)
+}
+
+model PricingRule {
+  id         String   @id @default(cuid())
+  venueId    String
+  resourceId String?  // null = all resources in venue
+  name       String   // e.g. "Weekday Morning", "Weekend Peak"
+  dayType    String   @default("all") // all, weekday, weekend
+  startTime  String   // "06:00"
+  endTime    String   // "16:00"
+  price      Float
+  status     String   @default("active")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  venue      Venue    @relation(fields: [venueId], references: [id], onDelete: Cascade)
+}
+
+model Customer {
+  id                String    @id @default(cuid())
+  businessId        String
+  phone             String    // Primary identifier: +919876543210
+  name              String
+  email             String?
+  notes             String?
+  firstBookingAt    DateTime?
+  lastBookingAt     DateTime?
+  totalBookings     Int       @default(0)
+  totalSpend        Float     @default(0)
+  cancellationCount Int       @default(0)
+  noShowCount       Int       @default(0)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  business          Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  bookings          Booking[]
+
+  @@unique([businessId, phone])
+}
+
+model Booking {
+  id                 String    @id @default(cuid())
+  bookingNumber      String    @unique // e.g. "BD-2026-000184"
+  businessId         String
+  venueId            String
+  resourceId         String
+  customerId         String
+  startAt            DateTime
+  endAt              DateTime
+  dateStr            String    // "2026-09-15"
+  startTimeStr       String    // "18:00"
+  endTimeStr         String    // "19:00"
+  status             String    @default("confirmed") // payment_pending, confirmed, completed, cancelled, no_show
+  subtotal           Float
+  discount           Float     @default(0)
+  tax                Float     @default(0)
+  total              Float
+  paymentStatus      String    @default("successful") // unpaid, pending, successful, failed, refunded, manual
+  paymentMethod      String?   @default("placeholder") // upi, card, netbanking, cash, pass, manual, placeholder
+  cancellationReason String?
+  cancelledAt        DateTime?
+  notes              String?
+  createdBy          String    @default("customer") // customer, staff, manager, admin
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  business           Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  venue              Venue     @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  resource           Resource  @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  customer           Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  payments           Payment[]
+}
+
+model Payment {
+  id                String    @id @default(cuid())
+  bookingId         String
+  businessId        String
+  provider          String    @default("placeholder") // placeholder, razorpay, cashfree, manual
+  providerOrderId   String?
+  providerPaymentId String?
+  amount            Float
+  currency          String    @default("INR")
+  method            String    @default("upi")
+  status            String    @default("successful") // created, pending, successful, failed, expired, refunded
+  notes             String?
+  paidAt            DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  booking           Booking   @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  business          Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+}
+
+model SlotHold {
+  id            String   @id @default(cuid())
+  resourceId    String
+  startAt       DateTime
+  endAt         DateTime
+  holdToken     String   @unique
+  customerPhone String?
+  expiresAt     DateTime
+  createdAt     DateTime @default(now())
+
+  resource      Resource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  businessId String
+  userId     String?
+  userEmail  String?
+  action     String   // e.g. "pricing_updated", "booking_cancelled", "slot_blocked"
+  entityType String   // "pricing_rule", "booking", "venue", "resource"
+  entityId   String?
+  details    String   // JSON string with before/after state
+  ipAddress  String?
+  createdAt  DateTime @default(now())
+
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+}
