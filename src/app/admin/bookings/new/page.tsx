@@ -28,6 +28,7 @@ export default function NewManualBookingPage() {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isLoadingVenues, setIsLoadingVenues] = useState(true);
 
   // Load venues
   useEffect(() => {
@@ -38,6 +39,9 @@ export default function NewManualBookingPage() {
           setVenues(d.venues);
           setSelectedVenueId(d.venues[0].id);
         }
+      })
+      .finally(() => {
+        setIsLoadingVenues(false);
       });
   }, []);
 
@@ -125,6 +129,18 @@ export default function NewManualBookingPage() {
         </div>
       )}
 
+      {venues.length === 0 && !isLoadingVenues && (
+        <div className="p-5 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5">
+            <AlertCircle className="w-5 h-5 text-amber-600 shrink-0" />
+            <span>You haven&apos;t created any venues yet. Please set up a venue before booking slots.</span>
+          </div>
+          <Button asChild size="sm" className="bg-amber-600 hover:bg-amber-700 text-white font-bold shrink-0 text-xs">
+            <Link href="/admin/venues">Create Venue</Link>
+          </Button>
+        </div>
+      )}
+
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Step 1: Venue & Date */}
         <Card className="border-slate-200/90 shadow-xs">
@@ -139,11 +155,15 @@ export default function NewManualBookingPage() {
                 onChange={(e) => setSelectedVenueId(e.target.value)}
                 className="w-full h-11 px-3 rounded-xl border border-slate-200 bg-white text-xs font-semibold text-slate-700 focus:outline-none"
               >
-                {venues.map((v) => (
-                  <option key={v.id} value={v.id}>
-                    {v.name}
-                  </option>
-                ))}
+                {venues.length === 0 ? (
+                  <option value="">No venues available</option>
+                ) : (
+                  venues.map((v) => (
+                    <option key={v.id} value={v.id}>
+                      {v.name}
+                    </option>
+                  ))
+                )}
               </select>
             </div>
 
@@ -166,7 +186,9 @@ export default function NewManualBookingPage() {
             <CardTitle className="text-sm font-bold">2. Choose Available Court Slot</CardTitle>
           </CardHeader>
           <CardContent className="p-5">
-            {!availability ? (
+            {!selectedVenueId ? (
+              <p className="text-xs text-slate-400">Please select a venue above to view available court slots.</p>
+            ) : !availability ? (
               <p className="text-xs text-slate-400">Loading court availability...</p>
             ) : (
               <div className="space-y-4">

@@ -30,16 +30,75 @@ export interface VenueDayAvailability {
   dateStr: string; // "2026-09-15"
   dayOfWeek: number;
   isOpen: boolean;
+  isHoliday: boolean;
+  holidayReason?: string;
   openTime: string;
   closeTime: string;
   resources: ResourceAvailability[];
   timeHeaders: { startTime: string; endTime: string }[];
 }
 
+export interface BookingWindow {
+  bookingWindowStart: string;
+  bookingWindowEnd: string;
+  allowedDates: string[];
+}
+
+/**
+ * Calculates the exact 7-calendar-day booking window in the venue's configured timezone.
+ * Returns Today through Today + 6 calendar days (7 dates total).
+ */
+export function getBookingCalendarWindow(timezone: string = "Asia/Kolkata"): BookingWindow {
+  const now = new Date();
+  const formatter = new Intl.DateTimeFormat("en-CA", {
+    timeZone: timezone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+
+  const todayStr = formatter.format(now);
+  const [year, month, day] = todayStr.split("-").map(Number);
+  const baseDate = new Date(Date.UTC(year, month - 1, day, 12, 0, 0));
+
+  const allowedDates: string[] = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(baseDate.getTime() + i * 24 * 60 * 60 * 1000);
+    allowedDates.push(d.toISOString().slice(0, 10));
+  }
+
+  return {
+    bookingWindowStart: allowedDates[0],
+    bookingWindowEnd: allowedDates[6],
+    allowedDates,
+  };
+}
+
+/**
+ * Validates whether a requested date string falls within the 7-day booking window.
+ */
+export function validateBookingDateInWindow(
+  dateStr: string,
+  timezone: string = "Asia/Kolkata"
+): { valid: boolean; error?: string } {
+  const window = getBookingCalendarWindow(timezone);
+  if (!window.allowedDates.includes(dateStr)) {
+    return {
+      valid: false,
+      error: "This date is no longer available for online booking.",
+    };
+  }
+  return { valid: true };
+}
+
 /**
  * Generates slots and resolves real-time availability and dynamic pricing for a venue on a given date.
  */
-export async function getVenueAvailability(venueId: string, dateStr: string): Promise<VenueDayAvailability> {
+export async function getVenueAvailability(
+  venueId: string,
+  dateStr: string,
+  currentHoldToken?: string
+): Promise<VenueDayAvailability> {
   const venue = await db.venue.findUnique({
     where: { id: venueId },
     include: {
@@ -56,6 +115,35 @@ export async function getVenueAvailability(venueId: string, dateStr: string): Pr
 
   if (!venue) {
     throw new Error("Venue not found");
+  }
+
+  const now = new Date();
+
+  // Purge expired holds asynchronously
+  await db.slotHold.deleteMany({
+    where: { expiresAt: { lte: now } },
+  }).catch(() => {});
+
+  // Accurate timezone calculation for venue
+  const venueTz = venue.timezone || "Asia/Kolkata";
+  const todayInVenue = new Intl.DateTimeFormat("en-CA", {
+    timeZone: venueTz,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(now); // "2026-09-11"
+
+  const currentTimeInVenue = new Intl.DateTimeFormat("en-GB", {
+    timeZone: venueTz,
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(now); // "19:43"
+
+  // Enforce 7-day booking window strictly
+  const windowValidation = validateBookingDateInWindow(dateStr, venueTz);
+  if (!windowValidation.valid) {
+    throw new Error("This date is no longer available for online booking.");
   }
 
   // Calculate day of week from dateStr (in venue timezone)
@@ -89,6 +177,31 @@ export async function getVenueAvailability(venueId: string, dateStr: string): Pr
     });
   }
 
+  // Check for Holidays
+  const holiday = await db.holiday.findFirst({
+    where: {
+      businessId: venue.businessId,
+      dateStr: dateStr,
+      OR: [{ venueId: venue.id }, { venueId: null }],
+    },
+  });
+
+  if (holiday) {
+    return {
+      venueId: venue.id,
+      venueName: venue.name,
+      dateStr,
+      dayOfWeek,
+      isOpen: false,
+      isHoliday: true,
+      holidayReason: holiday.reason,
+      openTime,
+      closeTime,
+      resources: [],
+      timeHeaders,
+    };
+  }
+
   // If venue is closed on this day
   if (!isOpen) {
     return {
@@ -97,6 +210,7 @@ export async function getVenueAvailability(venueId: string, dateStr: string): Pr
       dateStr,
       dayOfWeek,
       isOpen: false,
+      isHoliday: false,
       openTime,
       closeTime,
       resources: [],
@@ -121,7 +235,6 @@ export async function getVenueAvailability(venueId: string, dateStr: string): Pr
   });
 
   // Fetch active slot holds
-  const now = new Date();
   const activeHolds = await db.slotHold.findMany({
     where: {
       resource: { venueId: venue.id },
@@ -143,7 +256,6 @@ export async function getVenueAvailability(venueId: string, dateStr: string): Pr
 
   // Pricing resolver helper
   const resolvePrice = (resourceDefaultPrice: number, startTime: string): number => {
-    // Find matching pricing rule
     const rule = venue.pricingRules.find((r) => {
       const matchDay = r.dayType === "all" || r.dayType === dayType;
       const matchTime = startTime >= r.startTime && startTime < r.endTime;
@@ -159,19 +271,22 @@ export async function getVenueAvailability(venueId: string, dateStr: string): Pr
       const slotStartAt = new Date(`${dateStr}T${startTime}:00.000Z`);
       const slotEndAt = new Date(`${dateStr}T${endTime}:00.000Z`);
 
-      // Check if slot is in the past (comparing against current time)
-      const isPast = slotStartAt.getTime() < now.getTime();
+      // Timezone-precise past check
+      const isPast =
+        dateStr < todayInVenue ||
+        (dateStr === todayInVenue && startTime <= currentTimeInVenue);
 
       // Check if booked
       const existingBooking = bookings.find(
         (b) => b.resourceId === resource.id && b.startTimeStr === startTime
       );
 
-      // Check if held
+      // Check if held by someone else
       const existingHold = activeHolds.find(
         (h) =>
           h.resourceId === resource.id &&
-          h.startAt.getTime() === slotStartAt.getTime()
+          h.startAt.getTime() === slotStartAt.getTime() &&
+          h.holdToken !== currentHoldToken
       );
 
       // Check if blocked
@@ -232,6 +347,7 @@ export async function getVenueAvailability(venueId: string, dateStr: string): Pr
     dateStr,
     dayOfWeek,
     isOpen: true,
+    isHoliday: false,
     openTime,
     closeTime,
     resources: resourcesAvailability,

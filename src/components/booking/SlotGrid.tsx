@@ -117,6 +117,8 @@ export function SlotGrid({
                       ? "bg-slate-100 border-slate-200/80 text-slate-400 cursor-not-allowed opacity-75"
                       : isHeld
                       ? "bg-amber-50/80 border-amber-200 text-amber-800 cursor-not-allowed"
+                      : isBlocked && slot.blockedReason === "Court Under Maintenance"
+                      ? "bg-[repeating-linear-gradient(45deg,#f1f5f9,#f1f5f9_10px,#f8fafc_10px,#f8fafc_20px)] border-slate-300 text-slate-400 cursor-not-allowed opacity-80"
                       : "bg-slate-50 border-slate-200 text-slate-400 cursor-not-allowed opacity-60"
                   )}
                 >
@@ -142,6 +144,10 @@ export function SlotGrid({
                     ) : isHeld ? (
                       <span className="text-[10px] uppercase font-semibold text-amber-700">
                         Holding
+                      </span>
+                    ) : isBlocked && slot.blockedReason === "Court Under Maintenance" ? (
+                      <span className="text-[10px] uppercase font-bold text-slate-500 bg-slate-200 px-1.5 py-0.5 rounded-md">
+                        Maintenance
                       </span>
                     ) : (
                       <span className="text-[10px] uppercase font-semibold text-slate-400">

@@ -15,6 +15,7 @@ model Business {
   supportPhone       String?
   supportEmail       String?
   cancellationPolicy String?
+  festiveTheme       String         @default("default") // default, diwali, holi, christmas, national
   createdAt          DateTime       @default(now())
   updatedAt          DateTime       @updatedAt
 
@@ -24,6 +25,9 @@ model Business {
   bookings           Booking[]
   auditLogs          AuditLog[]
   payments           Payment[]
+  holidays           Holiday[]
+  paymentEvents      PaymentEvent[]
+  notifications      Notification[]
 }
 
 model BusinessUser {
@@ -70,6 +74,7 @@ model Venue {
   pricingRules        PricingRule[]
   bookings            Booking[]
   assignedUsers       BusinessUser[]
+  holidays            Holiday[]
 }
 
 model Resource {
@@ -176,6 +181,7 @@ model Booking {
   paymentMethod      String?   @default("placeholder") // upi, card, netbanking, cash, pass, manual, placeholder
   cancellationReason String?
   cancelledAt        DateTime?
+  holdToken          String?
   notes              String?
   createdBy          String    @default("customer") // customer, staff, manager, admin
   createdAt          DateTime  @default(now())
@@ -186,13 +192,19 @@ model Booking {
   resource           Resource  @relation(fields: [resourceId], references: [id], onDelete: Cascade)
   customer           Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
   payments           Payment[]
+  accessTokens       BookingAccessToken[]
+  notifications      Notification[]
+
+  @@index([resourceId, dateStr, startTimeStr])
+  @@index([venueId, dateStr])
+  @@index([businessId, status])
 }
 
 model Payment {
   id                String    @id @default(cuid())
   bookingId         String
   businessId        String
-  provider          String    @default("placeholder") // placeholder, razorpay, cashfree, manual
+  provider          String    @default("placeholder") // placeholder, razorpay, cashfree, manual, test
   providerOrderId   String?
   providerPaymentId String?
   amount            Float
@@ -206,6 +218,9 @@ model Payment {
 
   booking           Booking   @relation(fields: [bookingId], references: [id], onDelete: Cascade)
   business          Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  @@index([providerOrderId])
+  @@index([providerPaymentId])
 }
 
 model SlotHold {
@@ -219,6 +234,9 @@ model SlotHold {
   createdAt     DateTime @default(now())
 
   resource      Resource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+
+  @@index([resourceId, startAt])
+  @@index([expiresAt])
 }
 
 model AuditLog {
@@ -235,3 +253,80 @@ model AuditLog {
 
   business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
 }
+
+model Holiday {
+  id         String   @id @default(cuid())
+  businessId String
+  venueId    String?  // null = all venues for the business
+  dateStr    String   // "2026-09-15"
+  reason     String
+  createdAt  DateTime @default(now())
+
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  venue      Venue?   @relation(fields: [venueId], references: [id], onDelete: Cascade)
+}
+
+model PaymentEvent {
+  id             String    @id @default(cuid())
+  businessId     String
+  provider       String    // test, cashfree, razorpay
+  eventId        String    @unique // Unique event ID for idempotent handling
+  eventType      String    // payment.successful, payment.failed, order.paid
+  payload        String    // JSON raw payload
+  signatureValid Boolean   @default(true)
+  processed      Boolean   @default(false)
+  processedAt    DateTime?
+  error          String?
+  createdAt      DateTime  @default(now())
+
+  business       Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  @@index([provider, eventId])
+}
+
+model BookingSequence {
+  id        String   @id @default("global")
+  nextValue Int      @default(101)
+  updatedAt DateTime @updatedAt
+}
+
+model BookingAccessToken {
+  id         String    @id @default(cuid())
+  bookingId  String
+  tokenHash  String    @unique
+  purpose    String    @default("customer_access") // customer_access, invoice_download
+  expiresAt  DateTime
+  revokedAt  DateTime?
+  lastUsedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  booking    Booking   @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@index([tokenHash])
+  @@index([bookingId, purpose])
+  @@index([expiresAt])
+}
+
+model Notification {
+  id                String    @id @default(cuid())
+  businessId        String
+  bookingId         String
+  customerId        String?
+  type              String    @default("booking_confirmation") // booking_confirmation
+  channel           String    @default("email")                // email, whatsapp
+  recipient         String    // e.g. customer email
+  status            String    @default("pending")              // pending, sent, failed, cancelled
+  providerMessageId String?
+  attemptCount      Int       @default(0)
+  lastError         String?
+  sentAt            DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  booking           Booking   @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  business          Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  @@index([bookingId, type])
+  @@index([businessId, status])
+}
+

@@ -52,10 +52,10 @@ export default function AdminLoginPage() {
         {/* Brand */}
         <div className="text-center space-y-2">
           <div className="inline-flex w-12 h-12 rounded-2xl bg-emerald-500 items-center justify-center text-white font-black text-xl shadow-lg shadow-emerald-500/30">
-            SZ
+            BA
           </div>
           <h1 className="text-2xl font-black text-white tracking-tight">
-            SmashZone Business OS
+            Badminton Academy Business OS
           </h1>
           <p className="text-xs text-slate-400">
             Sign in to manage venues, courts, pricing, and live bookings
@@ -125,28 +125,17 @@ export default function AdminLoginPage() {
             {/* Quick Demo Credentials */}
             <div className="mt-6 pt-5 border-t border-slate-700/80 space-y-2">
               <span className="text-[11px] font-semibold text-slate-400 block text-center uppercase tracking-wider">
-                Demo Accounts Quick-Fill
+                Quick-Fill Super Admin Credentials
               </span>
-              <div className="grid grid-cols-2 gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleQuickFill("admin@smashzone.in", "admin123")}
-                  className="bg-slate-900 border-slate-700 text-slate-300 hover:text-white hover:bg-slate-700 text-xs"
-                >
-                  Super Admin
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleQuickFill("manager@smashzone.in", "manager123")}
-                  className="bg-slate-900 border-slate-700 text-slate-300 hover:text-white hover:bg-slate-700 text-xs"
-                >
-                  Venue Manager
-                </Button>
-              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => handleQuickFill("admin@smashzone.in", "admin123")}
+                className="w-full bg-slate-900 border-slate-700 text-slate-300 hover:text-white hover:bg-slate-700 text-xs py-2"
+              >
+                Auto-fill Super Admin (admin@smashzone.in)
+              </Button>
             </div>
           </CardContent>
         </Card>

@@ -2,9 +2,10 @@
 
 import React, { useEffect, useState } from "react";
 import { format, addDays, subDays } from "date-fns";
-import { formatTime, formatTimeRange, formatCurrency, cn } from "@/lib/utils";
+import { formatTime, formatTimeRange, formatCurrency, cn, normalizePhone } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -17,17 +18,34 @@ import {
   Phone,
   X,
   Plus,
+  CheckCircle,
+  ExternalLink,
+  Ban,
+  AlertCircle,
+  Download,
 } from "lucide-react";
+import Link from "next/link";
 
 export default function AdminCalendarPage() {
   const [venues, setVenues] = useState<any[]>([]);
   const [selectedVenueId, setSelectedVenueId] = useState<string>("");
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [calendarView, setCalendarView] = useState<"day" | "week">("day");
   const [availability, setAvailability] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Detail Modal
+  // Detail Drawer / Modal
   const [activeSlotDetail, setActiveSlotDetail] = useState<any>(null);
+  const [bookingDetails, setBookingDetails] = useState<any>(null);
+  const [isLoadingBooking, setIsLoadingBooking] = useState(false);
+
+  // Quick Manual Booking Form State
+  const [manualName, setManualName] = useState("");
+  const [manualPhone, setManualPhone] = useState("");
+  const [manualMethod, setManualMethod] = useState("cash");
+  const [manualNotes, setManualNotes] = useState("");
+  const [isSubmittingManual, setIsSubmittingManual] = useState(false);
+  const [modalError, setModalError] = useState<string | null>(null);
 
   // 1. Fetch Venues
   useEffect(() => {
@@ -38,41 +56,145 @@ export default function AdminCalendarPage() {
         if (data.success && data.venues.length > 0) {
           setVenues(data.venues);
           setSelectedVenueId(data.venues[0].id);
+        } else {
+          setIsLoading(false);
         }
       } catch (e) {
         console.error("Failed to load venues", e);
+        setIsLoading(false);
       }
     }
     loadVenues();
   }, []);
 
   // 2. Fetch Availability when Venue or Date changes
-  useEffect(() => {
+  const loadCalendar = async () => {
     if (!selectedVenueId) return;
-
-    async function loadCalendar() {
-      try {
-        setIsLoading(true);
-        const dateStr = format(selectedDate, "yyyy-MM-dd");
-        const res = await fetch(
-          `/api/v1/availability?venueId=${selectedVenueId}&date=${dateStr}`
-        );
-        const data = await res.json();
-        if (data.success) {
-          setAvailability(data.availability);
-        }
-      } catch (e) {
-        console.error("Failed to load calendar", e);
-      } finally {
-        setIsLoading(false);
+    try {
+      setIsLoading(true);
+      const dateStr = format(selectedDate, "yyyy-MM-dd");
+      const res = await fetch(
+        `/api/v1/availability?venueId=${selectedVenueId}&date=${dateStr}`
+      );
+      const data = await res.json();
+      if (data.success) {
+        setAvailability(data.availability);
       }
+    } catch (e) {
+      console.error("Failed to load calendar", e);
+    } finally {
+      setIsLoading(false);
     }
+  };
 
+  useEffect(() => {
     loadCalendar();
   }, [selectedVenueId, selectedDate]);
 
-  const handlePrevDay = () => setSelectedDate((d) => subDays(d, 1));
-  const handleNextDay = () => setSelectedDate((d) => addDays(d, 1));
+  // Handle Slot Click
+  const handleSlotClick = async (slot: any) => {
+    setActiveSlotDetail(slot);
+    setModalError(null);
+    setManualName("");
+    setManualPhone("");
+    setManualNotes("");
+    setManualMethod("cash");
+    setBookingDetails(null);
+
+    if (slot.status === "booked" && slot.bookingId) {
+      try {
+        setIsLoadingBooking(true);
+        const res = await fetch(`/api/v1/bookings/${slot.bookingId}`);
+        const data = await res.json();
+        if (data.success) {
+          setBookingDetails(data.booking);
+        }
+      } catch {
+        // failed to fetch booking
+      } finally {
+        setIsLoadingBooking(false);
+      }
+    }
+  };
+
+  // Submit Quick Manual Booking
+  const handleQuickManualBooking = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!activeSlotDetail || !selectedVenueId) return;
+
+    const cleanPhone = normalizePhone(manualPhone);
+    if (!cleanPhone || cleanPhone.length < 10) {
+      setModalError("Please enter a valid 10-digit mobile number.");
+      return;
+    }
+
+    if (!manualName.trim()) {
+      setModalError("Please enter customer name.");
+      return;
+    }
+
+    setIsSubmittingManual(true);
+    setModalError(null);
+
+    try {
+      const res = await fetch("/api/v1/admin/bookings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          venueId: selectedVenueId,
+          resourceId: activeSlotDetail.resourceId,
+          dateStr: format(selectedDate, "yyyy-MM-dd"),
+          startTimeStr: activeSlotDetail.startTime,
+          endTimeStr: activeSlotDetail.endTime,
+          customerName: manualName.trim(),
+          customerPhone: cleanPhone,
+          paymentMethod: manualMethod,
+          notes: manualNotes.trim() || undefined,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        setActiveSlotDetail(null);
+        await loadCalendar();
+      } else {
+        setModalError(data.error || "Failed to create manual booking.");
+      }
+    } catch {
+      setModalError("Network error. Please try again.");
+    } finally {
+      setIsSubmittingManual(false);
+    }
+  };
+
+  // Cancel Booking from Drawer
+  const handleCancelBooking = async (bookingId: string) => {
+    if (!confirm("Are you sure you want to cancel this booking? The slot will immediately open for other players.")) {
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/v1/bookings/${bookingId}/cancel`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reason: "Cancelled by venue manager via calendar" }),
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        setActiveSlotDetail(null);
+        await loadCalendar();
+      } else {
+        alert(data.error || "Failed to cancel booking.");
+      }
+    } catch {
+      alert("Error cancelling booking.");
+    }
+  };
+
+  const handlePrevDay = () => setSelectedDate((d) => subDays(d, calendarView === "week" ? 7 : 1));
+  const handleNextDay = () => setSelectedDate((d) => addDays(d, calendarView === "week" ? 7 : 1));
   const handleToday = () => setSelectedDate(new Date());
 
   return (
@@ -87,6 +209,32 @@ export default function AdminCalendarPage() {
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
+          {/* Day / Week View Toggle */}
+          <div className="flex items-center bg-slate-100 p-1 rounded-xl text-xs font-bold">
+            <button
+              onClick={() => setCalendarView("day")}
+              className={cn(
+                "px-3 py-1.5 rounded-lg transition-all",
+                calendarView === "day"
+                  ? "bg-white text-slate-900 shadow-xs"
+                  : "text-slate-500 hover:text-slate-900"
+              )}
+            >
+              Day View
+            </button>
+            <button
+              onClick={() => setCalendarView("week")}
+              className={cn(
+                "px-3 py-1.5 rounded-lg transition-all",
+                calendarView === "week"
+                  ? "bg-white text-slate-900 shadow-xs"
+                  : "text-slate-500 hover:text-slate-900"
+              )}
+            >
+              Week View
+            </button>
+          </div>
+
           {/* Venue Switcher */}
           <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-slate-200 shadow-xs">
             <Building2 className="w-4 h-4 text-emerald-600" />
@@ -134,19 +282,19 @@ export default function AdminCalendarPage() {
       <div className="flex flex-wrap items-center gap-4 py-2 px-3 bg-white rounded-xl border border-slate-200 text-xs font-medium text-slate-600">
         <div className="flex items-center gap-2">
           <span className="w-3.5 h-3.5 rounded-md bg-emerald-50 border border-emerald-300" />
-          <span>Available</span>
+          <span>Available (Click for Quick Booking)</span>
         </div>
         <div className="flex items-center gap-2">
           <span className="w-3.5 h-3.5 rounded-md bg-slate-900" />
-          <span>Booked</span>
+          <span>Booked (Click for Details)</span>
         </div>
         <div className="flex items-center gap-2">
           <span className="w-3.5 h-3.5 rounded-md bg-amber-100 border border-amber-300" />
-          <span>Held (Checkout)</span>
+          <span>Held in Checkout</span>
         </div>
         <div className="flex items-center gap-2">
           <span className="w-3.5 h-3.5 rounded-md bg-slate-100 border border-slate-200" />
-          <span>Maintenance / Blocked</span>
+          <span>Blocked / Maintenance</span>
         </div>
       </div>
 
@@ -159,6 +307,19 @@ export default function AdminCalendarPage() {
               <Skeleton className="h-16 w-full" />
               <Skeleton className="h-16 w-full" />
               <Skeleton className="h-16 w-full" />
+            </div>
+          ) : venues.length === 0 ? (
+            <div className="p-12 text-center flex flex-col items-center">
+              <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center text-slate-400 mb-3">
+                <Building2 className="w-6 h-6" />
+              </div>
+              <h3 className="font-bold text-slate-900 text-base">No Venues Added Yet</h3>
+              <p className="text-xs text-slate-500 max-w-sm mt-1 mb-4">
+                Please create a venue first to start viewing and managing court schedules.
+              </p>
+              <Button asChild className="bg-emerald-600 hover:bg-emerald-700 font-bold text-xs">
+                <Link href="/admin/venues">Go to Venues and Courts</Link>
+              </Button>
             </div>
           ) : !availability?.resources?.length ? (
             <div className="p-12 text-center text-slate-500 text-sm">
@@ -195,16 +356,16 @@ export default function AdminCalendarPage() {
                         return (
                           <td key={slot.slotId} className="p-1.5">
                             <button
-                              onClick={() => setActiveSlotDetail(slot)}
+                              onClick={() => handleSlotClick(slot)}
                               className={cn(
-                                "w-full h-14 rounded-xl flex flex-col items-center justify-center p-1 transition-all duration-150 text-center select-none",
+                                "w-full h-14 rounded-xl flex flex-col items-center justify-center p-1 transition-all duration-150 text-center select-none cursor-pointer",
                                 isAvailable
                                   ? "bg-emerald-50/70 border border-emerald-200/80 text-emerald-800 hover:bg-emerald-100 hover:border-emerald-300"
                                   : isBooked
-                                  ? "bg-slate-900 text-white shadow-xs"
+                                  ? "bg-slate-900 text-white shadow-xs hover:bg-slate-800"
                                   : isHeld
                                   ? "bg-amber-100 text-amber-900 border border-amber-300"
-                                  : "bg-slate-100 text-slate-400 border border-slate-200 opacity-60"
+                                  : "bg-slate-100 text-slate-400 border border-slate-200 opacity-60 cursor-not-allowed"
                               )}
                             >
                               <span className="font-bold text-[11px] truncate w-full">
@@ -237,12 +398,19 @@ export default function AdminCalendarPage() {
         </CardContent>
       </Card>
 
-      {/* Quick Slot Details Modal */}
+      {/* Slot Details and Quick Action Drawer / Modal */}
       {activeSlotDetail && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-          <div className="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-200 animate-in zoom-in-95">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 animate-in zoom-in-95 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-4 border-b border-slate-100">
-              <h3 className="font-bold text-slate-900 text-base">Slot Information</h3>
+              <div>
+                <h3 className="font-bold text-slate-900 text-base">
+                  {activeSlotDetail.status === "available" ? "Quick Manual Reservation" : "Slot Information"}
+                </h3>
+                <p className="text-xs text-slate-500">
+                  {activeSlotDetail.resourceName} • {formatTimeRange(activeSlotDetail.startTime, activeSlotDetail.endTime)}
+                </p>
+              </div>
               <button
                 onClick={() => setActiveSlotDetail(null)}
                 className="p-1.5 rounded-full hover:bg-slate-100 text-slate-400"
@@ -251,48 +419,183 @@ export default function AdminCalendarPage() {
               </button>
             </div>
 
-            <div className="mt-4 space-y-3 text-xs">
-              <div className="flex justify-between py-1 border-b border-slate-50">
-                <span className="text-slate-500">Court</span>
-                <span className="font-bold text-slate-800">{activeSlotDetail.resourceName}</span>
+            {/* Error in modal */}
+            {modalError && (
+              <div className="mt-4 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{modalError}</span>
               </div>
-              <div className="flex justify-between py-1 border-b border-slate-50">
-                <span className="text-slate-500">Time Range</span>
-                <span className="font-bold text-slate-800">
-                  {formatTimeRange(activeSlotDetail.startTime, activeSlotDetail.endTime)}
-                </span>
-              </div>
-              <div className="flex justify-between py-1 border-b border-slate-50">
-                <span className="text-slate-500">Price Rate</span>
-                <span className="font-bold text-emerald-600 text-sm">
-                  {formatCurrency(activeSlotDetail.price)}
-                </span>
-              </div>
-              <div className="flex justify-between py-1">
-                <span className="text-slate-500">Current Status</span>
-                <Badge
-                  className={
-                    activeSlotDetail.status === "available"
-                      ? "bg-emerald-100 text-emerald-800"
-                      : activeSlotDetail.status === "booked"
-                      ? "bg-slate-900 text-white"
-                      : "bg-slate-100 text-slate-700"
-                  }
-                >
-                  {activeSlotDetail.status}
-                </Badge>
-              </div>
-            </div>
+            )}
 
-            <div className="mt-6 pt-3 border-t border-slate-100">
-              <Button
-                onClick={() => setActiveSlotDetail(null)}
-                variant="outline"
-                className="w-full text-xs font-bold"
-              >
-                Close
-              </Button>
-            </div>
+            {/* If Slot is Booked: Show Details and Actions */}
+            {activeSlotDetail.status === "booked" ? (
+              <div className="mt-4 space-y-4">
+                {isLoadingBooking ? (
+                  <div className="space-y-2 py-4">
+                    <Skeleton className="h-6 w-full" />
+                    <Skeleton className="h-6 w-3/4" />
+                    <Skeleton className="h-6 w-1/2" />
+                  </div>
+                ) : bookingDetails ? (
+                  <div className="space-y-3 text-xs">
+                    <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+                      <div className="flex justify-between items-center">
+                        <span className="text-slate-500">Booking Number</span>
+                        <span className="font-mono font-bold text-emerald-600 text-sm">
+                          {bookingDetails.bookingNumber}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-slate-500">Customer</span>
+                        <span className="font-bold text-slate-800">{bookingDetails.customer?.name}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-slate-500">Mobile</span>
+                        <span className="font-bold text-slate-800">{bookingDetails.customer?.phone}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-slate-500">Amount Paid</span>
+                        <span className="font-bold text-slate-800">{formatCurrency(bookingDetails.total)}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-slate-500">Payment Method</span>
+                        <Badge className="bg-emerald-100 text-emerald-800 text-[10px]">
+                          {bookingDetails.paymentMethod?.toUpperCase()}
+                        </Badge>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-slate-500">Customer Access</span>
+                        {Date.now() - new Date(bookingDetails.createdAt).getTime() > 7 * 24 * 60 * 60 * 1000 ? (
+                          <Badge className="bg-amber-100 text-amber-800 border-0 text-[10px] font-medium">
+                            Link expired (7d policy)
+                          </Badge>
+                        ) : (
+                          <Badge className="bg-emerald-100 text-emerald-800 border-0 text-[10px] font-medium">
+                            Active link
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="pt-2 flex flex-col gap-2">
+                      <a href={`/api/v1/admin/bookings/${bookingDetails.id}/invoice`} download className="w-full">
+                        <Button variant="outline" size="sm" className="w-full gap-2 text-xs font-bold">
+                          <Download className="w-3.5 h-3.5 text-emerald-600" />
+                          <span>Download Official Tax Invoice (PDF)</span>
+                        </Button>
+                      </a>
+
+                      <Button asChild variant="outline" size="sm" className="w-full gap-2 text-xs font-bold">
+                        <Link href={`/booking/${bookingDetails.bookingNumber}`} target="_blank">
+                          <span>View Official Invoice and Pass</span>
+                          <ExternalLink className="w-3.5 h-3.5" />
+                        </Link>
+                      </Button>
+
+                      {bookingDetails.status !== "cancelled" && (
+                        <Button
+                          onClick={() => handleCancelBooking(bookingDetails.id)}
+                          variant="destructive"
+                          size="sm"
+                          className="w-full gap-1.5 text-xs font-bold"
+                        >
+                          <Ban className="w-3.5 h-3.5" />
+                          <span>Cancel This Reservation</span>
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="py-4 text-center text-xs text-slate-400">
+                    No booking details found for this slot.
+                  </div>
+                )}
+              </div>
+            ) : activeSlotDetail.status === "available" ? (
+              /* If Slot is Available: Show Quick Booking Form */
+              <form onSubmit={handleQuickManualBooking} className="mt-4 space-y-3.5 text-xs">
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Player Name *</label>
+                  <Input
+                    required
+                    placeholder="e.g. Ramesh Shah"
+                    value={manualName}
+                    onChange={(e) => setManualName(e.target.value)}
+                    className="text-xs"
+                    autoFocus
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Mobile Number *</label>
+                  <Input
+                    required
+                    type="tel"
+                    placeholder="98200 12345"
+                    value={manualPhone}
+                    onChange={(e) => setManualPhone(e.target.value)}
+                    className="text-xs"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Payment Method</label>
+                  <select
+                    value={manualMethod}
+                    onChange={(e) => setManualMethod(e.target.value)}
+                    className="w-full p-2.5 rounded-xl border border-slate-200 text-xs font-medium text-slate-800 bg-white"
+                  >
+                    <option value="cash">Cash (Front Desk)</option>
+                    <option value="manual_upi">Manual UPI (Scanner)</option>
+                    <option value="bank_transfer">Bank Transfer</option>
+                    <option value="pass">Player Pass / Package</option>
+                    <option value="complimentary">Complimentary</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Notes (Optional)</label>
+                  <Input
+                    placeholder="e.g. Walk-in reservation"
+                    value={manualNotes}
+                    onChange={(e) => setManualNotes(e.target.value)}
+                    className="text-xs"
+                  />
+                </div>
+
+                <div className="pt-2 flex gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setActiveSlotDetail(null)}
+                    className="flex-1 text-xs"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    disabled={isSubmittingManual}
+                    className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-xs font-bold"
+                  >
+                    {isSubmittingManual ? "Reserving..." : "Confirm Reservation"}
+                  </Button>
+                </div>
+              </form>
+            ) : (
+              /* Blocked or Held */
+              <div className="mt-4 space-y-3 text-xs">
+                <div className="p-3 bg-slate-50 rounded-xl space-y-1">
+                  <span className="text-slate-400 block font-medium">Status</span>
+                  <span className="font-bold text-slate-800 capitalize">{activeSlotDetail.status}</span>
+                  {activeSlotDetail.blockedReason && (
+                    <span className="text-slate-500 block">{activeSlotDetail.blockedReason}</span>
+                  )}
+                </div>
+                <Button onClick={() => setActiveSlotDetail(null)} variant="outline" className="w-full text-xs">
+                  Close
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       )}

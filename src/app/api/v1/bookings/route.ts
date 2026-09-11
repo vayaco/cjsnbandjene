@@ -15,6 +15,10 @@ export async function POST(request: NextRequest) {
       customerPhone,
       customerEmail,
       paymentMethod = "placeholder",
+      paymentProvider,
+      status,
+      paymentStatus,
+      holdToken,
       notes,
     } = body;
 
@@ -42,20 +46,31 @@ export async function POST(request: NextRequest) {
       customerPhone,
       customerEmail,
       paymentMethod,
+      paymentProvider,
+      status,
+      paymentStatus,
+      holdToken,
       notes,
       createdBy: "customer",
     });
 
     if (!result.success) {
+      const isWindowError = result.error?.includes("no longer available for online booking");
+      const isInputError = result.error?.includes("valid email") || result.error?.includes("valid phone");
+      const status = isWindowError ? 422 : isInputError ? 400 : 409;
+
       return NextResponse.json(
         { success: false, error: result.error },
-        { status: 409 } // 409 Conflict for double booking
+        { status }
       );
     }
 
     return NextResponse.json({
       success: true,
       booking: result.booking,
+      rawBookingToken: result.rawBookingToken,
+      rawInvoiceToken: result.rawInvoiceToken,
+      expiresAt: result.expiresAt,
       message: "Booking confirmed successfully!",
     });
   } catch (error: any) {

@@ -12,21 +12,34 @@ export default function AdminSettingsPage() {
   const [isLoadingLogs, setIsLoadingLogs] = useState(true);
 
   // Business info
-  const [businessName, setBusinessName] = useState("SmashZone Sports Arena");
-  const [supportPhone, setSupportPhone] = useState("+91 98201 12345");
-  const [supportEmail, setSupportEmail] = useState("support@smashzone.in");
-  const [cancellationPolicy, setCancellationPolicy] = useState(
-    "Full refund if cancelled >24 hours prior. 50% refund between 6-24 hours. Non-refundable within 6 hours."
-  );
+  const [businessName, setBusinessName] = useState("");
+  const [supportPhone, setSupportPhone] = useState("");
+  const [supportEmail, setSupportEmail] = useState("");
+  const [cancellationPolicy, setCancellationPolicy] = useState("");
+  const [festiveTheme, setFestiveTheme] = useState("default");
   const [saveSuccess, setSaveSuccess] = useState(false);
 
   useEffect(() => {
-    async function loadLogs() {
+    async function loadData() {
       try {
-        const res = await fetch("/api/v1/admin/audit-logs");
-        const data = await res.json();
-        if (data.success) {
-          setLogs(data.logs);
+        const [logsRes, businessRes] = await Promise.all([
+          fetch("/api/v1/admin/audit-logs"),
+          fetch("/api/v1/admin/business")
+        ]);
+        
+        const logsData = await logsRes.json();
+        const businessData = await businessRes.json();
+
+        if (logsData.success) {
+          setLogs(logsData.logs);
+        }
+        if (businessData.success && businessData.business) {
+          const b = businessData.business;
+          setBusinessName(b.name || "");
+          setSupportPhone(b.supportPhone || "");
+          setSupportEmail(b.supportEmail || "");
+          setCancellationPolicy(b.cancellationPolicy || "");
+          setFestiveTheme(b.festiveTheme || "default");
         }
       } catch (e) {
         console.error(e);
@@ -34,13 +47,30 @@ export default function AdminSettingsPage() {
         setIsLoadingLogs(false);
       }
     }
-    loadLogs();
+    loadData();
   }, []);
 
-  const handleSaveSettings = (e: React.FormEvent) => {
+  const handleSaveSettings = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSaveSuccess(true);
-    setTimeout(() => setSaveSuccess(false), 3000);
+    try {
+      const res = await fetch("/api/v1/admin/business", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: businessName,
+          supportPhone,
+          supportEmail,
+          cancellationPolicy,
+          festiveTheme,
+        }),
+      });
+      if (res.ok) {
+        setSaveSuccess(true);
+        setTimeout(() => setSaveSuccess(false), 3000);
+      }
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   return (
@@ -105,14 +135,34 @@ export default function AdminSettingsPage() {
               </div>
             </div>
 
-            <div>
-              <label className="font-bold text-slate-700 block mb-1">Cancellation Policy</label>
-              <textarea
-                rows={2}
-                value={cancellationPolicy}
-                onChange={(e) => setCancellationPolicy(e.target.value)}
-                className="w-full p-3 rounded-xl border border-slate-200 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
-              />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="font-bold text-slate-700 block mb-1">Cancellation Policy</label>
+                <textarea
+                  rows={2}
+                  value={cancellationPolicy}
+                  onChange={(e) => setCancellationPolicy(e.target.value)}
+                  className="w-full p-3 rounded-xl border border-slate-200 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                />
+              </div>
+
+              <div>
+                <label className="font-bold text-slate-700 block mb-1">Festive Season Theme</label>
+                <select
+                  value={festiveTheme}
+                  onChange={(e) => setFestiveTheme(e.target.value)}
+                  className="w-full h-10 px-3 rounded-xl border border-slate-200 bg-white text-xs font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                >
+                  <option value="default">Default Sport (None)</option>
+                  <option value="diwali">Diwali Lights</option>
+                  <option value="holi">Holi Colors</option>
+                  <option value="christmas">Christmas & New Year</option>
+                  <option value="national">National (Independence/Republic Day)</option>
+                </select>
+                <span className="text-[10px] text-slate-400 mt-1 block">
+                  Applies festive accents across the customer portal.
+                </span>
+              </div>
             </div>
 
             <Button type="submit" size="sm" className="bg-emerald-600 font-bold">

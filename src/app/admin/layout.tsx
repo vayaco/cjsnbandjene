@@ -28,6 +28,7 @@ const navigationItems = [
   { name: "Bookings", href: "/admin/bookings", icon: Ticket },
   { name: "New Booking", href: "/admin/bookings/new", icon: PlusCircle },
   { name: "Venues & Courts", href: "/admin/venues", icon: Building2 },
+  { name: "Holidays", href: "/admin/holidays", icon: Calendar },
   { name: "Customers", href: "/admin/customers", icon: Users },
   { name: "Reports", href: "/admin/reports", icon: FileBarChart },
   { name: "Settings & Audit", href: "/admin/settings", icon: Settings },
@@ -99,10 +100,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <div className="h-16 px-6 flex items-center justify-between border-b border-slate-800">
           <Link href="/admin/dashboard" className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-xl bg-emerald-500 flex items-center justify-center text-white font-black text-sm">
-              SZ
+              BA
             </div>
             <div>
-              <span className="font-bold text-white tracking-tight text-base">SmashZone</span>
+              <span className="font-bold text-white tracking-tight text-base">Badminton Academy</span>
               <span className="block text-[10px] text-emerald-400 font-semibold tracking-wider uppercase">
                 Admin OS
               </span>

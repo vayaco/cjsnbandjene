@@ -121,6 +121,25 @@ export async function GET(request: NextRequest) {
       take: 8,
     });
 
+    // Pending Payments count
+    const pendingPaymentsCount = await db.booking.count({
+      where: {
+        businessId,
+        status: "payment_pending",
+        ...bookingVenueWhere,
+      },
+    });
+
+    // Upcoming Bookings count
+    const upcomingBookingsCount = await db.booking.count({
+      where: {
+        businessId,
+        dateStr: { gte: dateStrToday },
+        status: "confirmed",
+        ...bookingVenueWhere,
+      },
+    });
+
     return NextResponse.json({
       success: true,
       data: {
@@ -130,6 +149,8 @@ export async function GET(request: NextRequest) {
           occupancyRate,
           availableSlotsToday,
           cancellationsToday: cancelledToday.length,
+          pendingPaymentsCount,
+          upcomingBookingsCount,
         },
         venues,
         selectedVenueId: effectiveVenueId || "all",

@@ -1,58 +1,45 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
+import {
+  getAuthoritativeReportData,
+  ReportMode,
+  ReportDateRange,
+} from "@/lib/reports/reporting-service";
 
 export async function GET(request: NextRequest) {
   try {
     const user = await getCurrentUser();
     if (!user) {
-      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ success: false, error: "Unauthorized access" }, { status: 401 });
     }
 
     const { searchParams } = new URL(request.url);
+    const modeParam = searchParams.get("mode");
+    const rangeParam = searchParams.get("range");
     const venueId = searchParams.get("venueId");
 
-    const whereClause: any = {
+    const mode: ReportMode = modeParam === "entire_history" ? "entire_history" : "date_range";
+    const range: ReportDateRange =
+      rangeParam === "7d" || rangeParam === "60d" || rangeParam === "90d" || rangeParam === "365d"
+        ? rangeParam
+        : "30d";
+
+    const dataset = await getAuthoritativeReportData({
       businessId: user.businessId,
-      status: "confirmed",
-    };
-
-    if (user.role === "venue_manager" && user.venueId) {
-      whereClause.venueId = user.venueId;
-    } else if (venueId && venueId !== "all") {
-      whereClause.venueId = venueId;
-    }
-
-    const bookings = await db.booking.findMany({
-      where: whereClause,
-      include: {
-        venue: { select: { name: true } },
-        resource: { select: { name: true } },
-        customer: { select: { name: true, phone: true } },
-      },
-      orderBy: { createdAt: "desc" },
+      venueId: user.role === "venue_manager" && user.venueId ? user.venueId : venueId,
+      mode,
+      range,
     });
-
-    const totalRevenue = bookings.reduce((sum, b) => sum + b.total, 0);
-    const totalBookings = bookings.length;
-
-    // Method breakdown
-    const methods: Record<string, number> = {};
-    for (const b of bookings) {
-      const m = b.paymentMethod || "other";
-      methods[m] = (methods[m] || 0) + b.total;
-    }
 
     return NextResponse.json({
       success: true,
-      data: {
-        totalRevenue,
-        totalBookings,
-        methods,
-        bookings,
-      },
+      data: dataset,
     });
   } catch (error: any) {
-    return NextResponse.json({ success: false, error: "Failed to generate reports" }, { status: 500 });
+    console.error("[ReportsAPI] Preview generation error:", error);
+    return NextResponse.json(
+      { success: false, error: "Failed to generate report preview." },
+      { status: 500 }
+    );
   }
 }

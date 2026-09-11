@@ -18,6 +18,7 @@ import {
   FileDown,
   XCircle,
   Eye,
+  Download,
 } from "lucide-react";
 
 export default function AdminBookingsPage() {
@@ -94,7 +95,7 @@ export default function AdminBookingsPage() {
                 <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
                 <Input
                   type="text"
-                  placeholder="Search by ID (SZ-...), Name, or Mobile..."
+                  placeholder="Search by ID (NA000101...), Name, or Mobile..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   className="pl-10 text-xs sm:text-sm h-10"
@@ -195,23 +196,42 @@ export default function AdminBookingsPage() {
                         {formatCurrency(b.total)}
                       </td>
                       <td className="p-4">
-                        <Badge
-                          className={
-                            b.status === "confirmed"
-                              ? "bg-emerald-100 text-emerald-800 font-bold text-[10px]"
-                              : "bg-rose-100 text-rose-800 font-bold text-[10px]"
-                          }
-                        >
-                          {b.status}
-                        </Badge>
+                        <div className="space-y-1">
+                          <Badge
+                            className={
+                              b.status === "confirmed"
+                                ? "bg-emerald-100 text-emerald-800 font-bold text-[10px]"
+                                : "bg-rose-100 text-rose-800 font-bold text-[10px]"
+                            }
+                          >
+                            {b.status}
+                          </Badge>
+                          {Date.now() - new Date(b.createdAt).getTime() > 7 * 24 * 60 * 60 * 1000 ? (
+                            <span className="block text-[10px] text-amber-600 font-medium whitespace-nowrap">
+                              Customer link expired (7d)
+                            </span>
+                          ) : (
+                            <span className="block text-[10px] text-emerald-600 font-medium whitespace-nowrap">
+                              Customer link active
+                            </span>
+                          )}
+                        </div>
                       </td>
-                      <td className="p-4 text-right pr-6">
-                        <Link href={`/booking/${b.bookingNumber}`} target="_blank">
-                          <Button variant="ghost" size="sm" className="h-8 px-2 text-slate-600 gap-1 text-xs">
-                            <Eye className="w-3.5 h-3.5" />
-                            <span>Ticket</span>
-                          </Button>
-                        </Link>
+                      <td className="p-4 text-right pr-6 whitespace-nowrap">
+                        <div className="flex items-center justify-end gap-1">
+                          <a href={`/api/v1/admin/bookings/${b.id}/invoice`} download>
+                            <Button variant="ghost" size="sm" className="h-8 px-2 text-slate-600 gap-1 text-xs" title="Download Official Invoice PDF">
+                              <Download className="w-3.5 h-3.5 text-emerald-600" />
+                              <span>Invoice</span>
+                            </Button>
+                          </a>
+                          <Link href={`/booking/${b.bookingNumber}`} target="_blank">
+                            <Button variant="ghost" size="sm" className="h-8 px-2 text-slate-600 gap-1 text-xs">
+                              <Eye className="w-3.5 h-3.5" />
+                              <span>Pass</span>
+                            </Button>
+                          </Link>
+                        </div>
                       </td>
                     </tr>
                   ))}

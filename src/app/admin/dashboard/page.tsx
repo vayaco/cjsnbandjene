@@ -18,6 +18,7 @@ import {
   Building2,
   ChevronRight,
   RefreshCw,
+  Calendar,
 } from "lucide-react";
 
 export default function AdminDashboardPage() {
@@ -70,6 +71,8 @@ export default function AdminDashboardPage() {
     occupancyRate: 0,
     availableSlotsToday: 0,
     cancellationsToday: 0,
+    pendingPaymentsCount: 0,
+    upcomingBookingsCount: 0,
   };
 
   return (
@@ -196,6 +199,39 @@ export default function AdminDashboardPage() {
             </span>
           </CardContent>
         </Card>
+      </div>
+
+      {/* Operational Highlights: Upcoming and Pending Payments */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="flex items-center justify-between p-4 rounded-2xl bg-white border border-slate-200/90 shadow-xs">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
+              <Calendar className="w-5 h-5" />
+            </div>
+            <div>
+              <span className="text-xs font-bold text-slate-900 block">Upcoming Confirmed Bookings</span>
+              <span className="text-[11px] text-slate-500">Reservations scheduled today and future dates</span>
+            </div>
+          </div>
+          <Badge className="bg-blue-100 text-blue-800 text-xs font-bold">
+            {metrics.upcomingBookingsCount} Scheduled
+          </Badge>
+        </div>
+
+        <div className="flex items-center justify-between p-4 rounded-2xl bg-white border border-slate-200/90 shadow-xs">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
+              <Clock className="w-5 h-5" />
+            </div>
+            <div>
+              <span className="text-xs font-bold text-slate-900 block">Pending Checkout Payments</span>
+              <span className="text-[11px] text-slate-500">Slots held or awaiting gateway confirmation</span>
+            </div>
+          </div>
+          <Badge className={metrics.pendingPaymentsCount > 0 ? "bg-amber-100 text-amber-800 text-xs font-bold" : "bg-slate-100 text-slate-600 text-xs font-bold"}>
+            {metrics.pendingPaymentsCount} Pending
+          </Badge>
+        </div>
       </div>
 
       {/* 7-Day Trend Chart Preview */}

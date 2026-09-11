@@ -8,6 +8,7 @@ export async function GET(request: NextRequest) {
     const venueId = searchParams.get("venueId");
     const venueSlug = searchParams.get("venueSlug");
     const dateStr = searchParams.get("date"); // "2026-09-15"
+    const holdToken = searchParams.get("holdToken") || undefined;
 
     if (!dateStr) {
       return NextResponse.json(
@@ -35,14 +36,15 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const availability = await getVenueAvailability(targetVenueId, dateStr);
+    const availability = await getVenueAvailability(targetVenueId, dateStr, holdToken);
 
     return NextResponse.json({ success: true, availability });
   } catch (error: any) {
     console.error("Availability API Error:", error);
+    const isWindowError = error.message?.includes("no longer available for online booking");
     return NextResponse.json(
       { success: false, error: error.message || "Failed to calculate availability" },
-      { status: 500 }
+      { status: isWindowError ? 422 : 500 }
     );
   }
 }

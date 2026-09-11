@@ -103,7 +103,7 @@ export default function AdminCustomersPage() {
                         <span>{c.name}</span>
                       </td>
                       <td className="p-4 font-mono font-medium text-slate-700">{c.phone}</td>
-                      <td className="p-4 text-slate-500">{c.email || "—"}</td>
+                      <td className="p-4 text-slate-500">{c.email || "-"}</td>
                       <td className="p-4 font-bold text-slate-800">
                         {c.totalBookings || c._count?.bookings || 0} slots
                       </td>

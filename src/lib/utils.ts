@@ -51,10 +51,15 @@ export function normalizePhone(phone: string): string {
 }
 
 /**
- * Generate human-readable booking ID: "SZ-2026-XXXX"
+ * Legacy booking number generator.
+ * Note: Core booking allocation is database-controlled via allocateBookingNumber in @/lib/booking-number.
  */
-export function generateBookingNumber(prefix: string = "SZ"): string {
-  const year = new Date().getFullYear();
-  const randomNum = Math.floor(1000 + Math.random() * 9000);
-  return `${prefix}-${year}-${randomNum}`;
+export function generateBookingNumber(sequenceNumber?: number): string {
+  if (sequenceNumber && Number.isInteger(sequenceNumber) && sequenceNumber > 0) {
+    const numStr = sequenceNumber.toString();
+    const padded = numStr.length < 6 ? numStr.padStart(6, "0") : numStr;
+    return `NA${padded}`;
+  }
+  return "NA000101";
 }
+

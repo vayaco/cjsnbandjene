@@ -14,7 +14,7 @@ interface DateStripProps {
 export function DateStrip({
   selectedDate,
   onSelectDate,
-  daysCount = 14,
+  daysCount = 7,
 }: DateStripProps) {
   const scrollContainerRef = React.useRef<HTMLDivElement>(null);
 
