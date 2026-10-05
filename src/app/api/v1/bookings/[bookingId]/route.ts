@@ -66,9 +66,14 @@ export async function GET(
         ],
       },
       include: {
-        venue: true,
+        venue: {
+          include: {
+            business: true,
+          },
+        },
         resource: true,
         customer: true,
+        pass: true,
         payments: {
           orderBy: { createdAt: "desc" },
           take: 1,

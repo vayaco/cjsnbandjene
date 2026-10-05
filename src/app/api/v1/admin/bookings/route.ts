@@ -49,6 +49,7 @@ export async function GET(request: NextRequest) {
         venue: { select: { id: true, name: true, slug: true } },
         resource: { select: { id: true, name: true, resourceType: true } },
         customer: { select: { id: true, name: true, phone: true, email: true } },
+        pass: { select: { id: true, passNumber: true, daysLabel: true, month: true, year: true } },
       },
       orderBy: [{ dateStr: "desc" }, { startTimeStr: "desc" }],
       take: 100,

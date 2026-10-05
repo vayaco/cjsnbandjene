@@ -76,6 +76,9 @@ export async function GET(
       }
     }
 
+    // Fetch business branding
+    const business = await db.business.findFirst({ select: { name: true } });
+
     // Generate internal PDF
     const pdfBuffer = await generateBookingInvoicePdf({
       bookingNumber: booking.bookingNumber,
@@ -88,6 +91,7 @@ export async function GET(
       paymentStatus: booking.paymentStatus,
       paymentMethod: booking.paymentMethod,
       createdAt: booking.createdAt,
+      brandName: business?.name || "Nitish Badminton Academy",
       customer: {
         name: booking.customer.name,
         phone: booking.customer.phone,

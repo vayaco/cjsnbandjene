@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+@theme {
+  --font-sans: var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, "SFMono-Regular", Menlo, Monaco, Consolas, monospace;
+}
+
 @layer base {
   :root {
     --background: 210 40% 98%;
@@ -53,13 +58,46 @@
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-family: var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   color: #0f172a;
   background-color: #f8fafc;
   min-height: 100vh;
   margin: 0;
   padding: 0;
   overflow-x: hidden;
+  font-feature-settings: "cv02" 1, "cv03" 1, "cv04" 1, "cv11" 1;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Engineered typographic hierarchy */
+h1, h2, h3, h4, h5, h6 {
+  letter-spacing: -0.02em;
+}
+
+/* Monospace font assignment, slashed zero, and precision tracking */
+code, kbd, samp, pre, .font-mono {
+  font-family: var(--font-geist-mono), ui-monospace, "SFMono-Regular", Menlo, Monaco, Consolas, monospace;
+  font-feature-settings: "zero" 1;
+  letter-spacing: -0.01em;
+}
+
+/* Tabular numbers for financial amounts, phone numbers, times, and tables */
+.tabular-nums,
+table td,
+.price-tag,
+.metric-value {
+  font-variant-numeric: tabular-nums lining-nums;
+  font-feature-settings: "tnum" 1, "lnum" 1, "zero" 1;
+}
+
+/* Uppercase micro-labels */
+.micro-label {
+  font-size: 0.6875rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  font-weight: 600;
 }
 
 /* Custom scrollbars for clean UI */

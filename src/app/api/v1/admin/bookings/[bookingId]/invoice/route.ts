@@ -44,6 +44,9 @@ export async function GET(
       return NextResponse.json({ success: false, error: "Forbidden: Not authorized for this venue" }, { status: 403 });
     }
 
+    // Fetch business branding
+    const business = await db.business.findFirst({ select: { name: true } });
+
     // Generate internal PDF with permanent admin retention
     const pdfBuffer = await generateBookingInvoicePdf({
       bookingNumber: booking.bookingNumber,
@@ -56,6 +59,7 @@ export async function GET(
       paymentStatus: booking.paymentStatus,
       paymentMethod: booking.paymentMethod,
       createdAt: booking.createdAt,
+      brandName: business?.name || "Nitish Badminton Academy",
       customer: {
         name: booking.customer.name,
         phone: booking.customer.phone,

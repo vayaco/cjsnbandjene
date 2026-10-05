@@ -132,7 +132,7 @@ export default function AdminReportsPage() {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
             Reports & Export
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 mt-1">
@@ -172,10 +172,10 @@ export default function AdminReportsPage() {
         >
           <div className="flex items-start justify-between">
             <div className="space-y-1">
-              <span className="text-[11px] font-extrabold uppercase tracking-wider text-emerald-700 block">
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-emerald-700 block">
                 Mode 1
               </span>
-              <h2 className="text-base sm:text-lg font-black text-slate-900">
+              <h2 className="text-base sm:text-lg font-semibold text-slate-900">
                 Entire History
               </h2>
               <p className="text-xs text-slate-500 leading-relaxed">
@@ -205,10 +205,10 @@ export default function AdminReportsPage() {
         >
           <div className="flex items-start justify-between">
             <div className="space-y-1">
-              <span className="text-[11px] font-extrabold uppercase tracking-wider text-emerald-700 block">
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-emerald-700 block">
                 Mode 2
               </span>
-              <h2 className="text-base sm:text-lg font-black text-slate-900">
+              <h2 className="text-base sm:text-lg font-semibold text-slate-900">
                 Predefined Date Range
               </h2>
               <p className="text-xs text-slate-500 leading-relaxed">
@@ -271,15 +271,15 @@ export default function AdminReportsPage() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <Card className="border-slate-200/90 shadow-sm bg-white">
           <CardHeader className="p-4 pb-1">
-            <CardTitle className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+            <CardTitle className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
               Total Bookings
             </CardTitle>
           </CardHeader>
           <CardContent className="p-4 pt-1">
-            <div className="text-2xl sm:text-3xl font-black text-slate-900">
+            <div className="text-2xl sm:text-3xl font-bold tabular-nums text-slate-900">
               {isLoading ? <Skeleton className="h-8 w-16" /> : summary?.totalBookings || 0}
             </div>
-            <p className="text-[11px] text-slate-400 mt-0.5">
+            <p className="text-[11px] text-slate-400 mt-0.5 tabular-nums">
               {summary?.confirmedBookings || 0} confirmed | {summary?.cancelledBookings || 0} cancelled
             </p>
           </CardContent>
@@ -287,12 +287,12 @@ export default function AdminReportsPage() {
 
         <Card className="border-slate-200/90 shadow-sm bg-white">
           <CardHeader className="p-4 pb-1">
-            <CardTitle className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+            <CardTitle className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
               Gross Booking Value
             </CardTitle>
           </CardHeader>
           <CardContent className="p-4 pt-1">
-            <div className="text-2xl sm:text-3xl font-black text-slate-900">
+            <div className="text-2xl sm:text-3xl font-bold tabular-nums text-slate-900">
               {isLoading ? <Skeleton className="h-8 w-24" /> : formatCurrency(summary?.grossBookingValue || 0)}
             </div>
             <p className="text-[11px] text-slate-400 mt-0.5">
@@ -303,12 +303,12 @@ export default function AdminReportsPage() {
 
         <Card className="border-slate-200/90 shadow-sm bg-white">
           <CardHeader className="p-4 pb-1">
-            <CardTitle className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+            <CardTitle className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
               Total Paid Amount
             </CardTitle>
           </CardHeader>
           <CardContent className="p-4 pt-1">
-            <div className="text-2xl sm:text-3xl font-black text-emerald-600">
+            <div className="text-2xl sm:text-3xl font-bold tabular-nums text-emerald-600">
               {isLoading ? <Skeleton className="h-8 w-24" /> : formatCurrency(summary?.paidAmount || 0)}
             </div>
             <p className="text-[11px] text-slate-400 mt-0.5">
@@ -319,12 +319,12 @@ export default function AdminReportsPage() {
 
         <Card className="border-slate-200/90 shadow-sm bg-white">
           <CardHeader className="p-4 pb-1">
-            <CardTitle className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+            <CardTitle className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
               Net Paid Amount
             </CardTitle>
           </CardHeader>
           <CardContent className="p-4 pt-1">
-            <div className="text-2xl sm:text-3xl font-black text-slate-900">
+            <div className="text-2xl sm:text-3xl font-bold tabular-nums text-slate-900">
               {isLoading ? <Skeleton className="h-8 w-24" /> : formatCurrency(summary?.netPaidAmount || 0)}
             </div>
             <p className="text-[11px] text-slate-400 mt-0.5">
@@ -338,10 +338,10 @@ export default function AdminReportsPage() {
       <Card className="border-slate-200/90 shadow-sm bg-white">
         <CardContent className="p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-            <span className="text-[11px] font-extrabold uppercase tracking-wider text-emerald-700 block">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-emerald-700 block">
               Active Scope: {metadata?.reportTypeLabel || "Entire History"}
             </span>
-            <div className="text-sm sm:text-base font-black text-slate-900 mt-0.5">
+            <div className="text-sm sm:text-base font-semibold text-slate-900 mt-0.5">
               {metadata?.periodLabel || "All recorded bookings"}
             </div>
             <span className="text-xs text-slate-500">
@@ -354,25 +354,27 @@ export default function AdminReportsPage() {
               variant="outline"
               onClick={loadReportData}
               disabled={isLoading}
-              className="text-xs font-bold gap-1.5 h-10 rounded-xl"
+              className="text-xs font-bold gap-1.5 h-10 px-4"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? "animate-spin" : ""}`} />
               <span>Refresh</span>
             </Button>
 
             <Button
+              variant="dark"
               onClick={handleDownloadPdf}
               disabled={isDownloadingPdf || isLoading || bookings.length === 0}
-              className="h-10 px-4 rounded-xl font-bold text-xs bg-slate-900 hover:bg-slate-800 text-white gap-2 shadow-sm"
+              className="h-10 px-5 font-bold text-xs gap-2"
             >
               <FileText className="w-3.5 h-3.5 text-emerald-400" />
               <span>{isDownloadingPdf ? "Generating PDF..." : "Download PDF Report"}</span>
             </Button>
 
             <Button
+              variant="default"
               onClick={handleDownloadCsv}
               disabled={isDownloadingCsv || isLoading || bookings.length === 0}
-              className="h-10 px-4 rounded-xl font-bold text-xs bg-emerald-600 hover:bg-emerald-700 text-white gap-2 shadow-sm"
+              className="h-10 px-5 font-bold text-xs gap-2"
             >
               <FileSpreadsheet className="w-3.5 h-3.5" />
               <span>{isDownloadingCsv ? "Exporting CSV..." : "Download CSV"}</span>
@@ -471,7 +473,7 @@ export default function AdminReportsPage() {
                           {b.paymentMethod}
                         </span>
                       </td>
-                      <td className="p-3.5 pr-5 text-right font-black text-slate-900">
+                      <td className="p-3.5 pr-5 text-right font-semibold tabular-nums text-slate-900">
                         {formatCurrency(b.total)}
                       </td>
                     </tr>

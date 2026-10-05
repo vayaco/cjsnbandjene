@@ -43,7 +43,7 @@ export default function AdminCustomersPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-black text-slate-900 tracking-tight">Customer Database</h1>
+        <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Customer Database</h1>
         <p className="text-xs text-slate-500 mt-0.5">
           Unified player directory linked automatically by phone number
         </p>
@@ -96,18 +96,18 @@ export default function AdminCustomersPage() {
                 <tbody className="divide-y divide-slate-100 text-xs">
                   {customers.map((c) => (
                     <tr key={c.id} className="hover:bg-slate-50/70 transition-colors">
-                      <td className="p-4 pl-6 font-bold text-slate-900 flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center font-black text-xs shrink-0">
+                      <td className="p-4 pl-6 font-semibold text-slate-900 flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-xs shrink-0">
                           {c.name?.slice(0, 1) || "P"}
                         </div>
                         <span>{c.name}</span>
                       </td>
-                      <td className="p-4 font-mono font-medium text-slate-700">{c.phone}</td>
+                      <td className="p-4 font-mono tabular-nums font-medium text-slate-700">{c.phone}</td>
                       <td className="p-4 text-slate-500">{c.email || "-"}</td>
-                      <td className="p-4 font-bold text-slate-800">
+                      <td className="p-4 font-semibold tabular-nums text-slate-800">
                         {c.totalBookings || c._count?.bookings || 0} slots
                       </td>
-                      <td className="p-4 font-black text-emerald-700">
+                      <td className="p-4 font-bold tabular-nums text-emerald-700">
                         {formatCurrency(c.totalSpend || 0)}
                       </td>
                       <td className="p-4 text-slate-500">

@@ -19,6 +19,7 @@ export async function sendBookingConfirmationNotification(
         venue: true,
         resource: true,
         customer: true,
+        business: true,
         payments: {
           orderBy: { createdAt: "desc" },
           take: 1,
@@ -78,6 +79,7 @@ export async function sendBookingConfirmationNotification(
       paymentStatus: booking.paymentStatus,
       paymentMethod: booking.paymentMethod,
       createdAt: booking.createdAt,
+      brandName: booking.business?.name || "Nitish Badminton Academy",
       customer: {
         name: booking.customer.name,
         phone: booking.customer.phone,
@@ -109,7 +111,7 @@ export async function sendBookingConfirmationNotification(
     });
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-    const passUrl = rawBookingToken ? `${appUrl}/booking/${rawBookingToken}` : `${appUrl}/find-booking`;
+    const passUrl = rawBookingToken ? `${appUrl}/booking/${rawBookingToken}` : `${appUrl}`;
 
     // 6. Build clean, brand-compliant HTML email (strictly zero third-party ads/logos)
     const emailHtml = `

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getVenueAvailability } from "@/lib/availability";
 import { db } from "@/lib/db";
+import { getCurrentUser } from "@/lib/auth";
 
 export async function GET(request: NextRequest) {
   try {
@@ -9,6 +10,7 @@ export async function GET(request: NextRequest) {
     const venueSlug = searchParams.get("venueSlug");
     const dateStr = searchParams.get("date"); // "2026-09-15"
     const holdToken = searchParams.get("holdToken") || undefined;
+    const requestedIgnoreWindow = searchParams.get("ignoreWindow") === "true";
 
     if (!dateStr) {
       return NextResponse.json(
@@ -36,7 +38,21 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const availability = await getVenueAvailability(targetVenueId, dateStr, holdToken);
+    // Only allow ignoring booking window if requester is authenticated admin/staff
+    let allowIgnoreWindow = false;
+    if (requestedIgnoreWindow) {
+      const user = await getCurrentUser();
+      if (user) {
+        allowIgnoreWindow = true;
+      }
+    }
+
+    const availability = await getVenueAvailability(
+      targetVenueId,
+      dateStr,
+      holdToken,
+      allowIgnoreWindow
+    );
 
     return NextResponse.json({ success: true, availability });
   } catch (error: any) {

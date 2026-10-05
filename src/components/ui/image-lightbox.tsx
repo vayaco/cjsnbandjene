@@ -65,7 +65,7 @@ export function ImageLightbox({
 
         {(title || description) && (
           <div className="mt-4 text-center text-white px-4">
-            {title && <h3 className="font-extrabold text-base sm:text-lg">{title}</h3>}
+            {title && <h3 className="font-semibold text-base sm:text-lg">{title}</h3>}
             {description && (
               <p className="text-xs sm:text-sm text-slate-300 mt-0.5 max-w-lg mx-auto">
                 {description}

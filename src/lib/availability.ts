@@ -97,7 +97,8 @@ export function validateBookingDateInWindow(
 export async function getVenueAvailability(
   venueId: string,
   dateStr: string,
-  currentHoldToken?: string
+  currentHoldToken?: string,
+  ignoreWindow: boolean = false
 ): Promise<VenueDayAvailability> {
   const venue = await db.venue.findUnique({
     where: { id: venueId },
@@ -140,10 +141,12 @@ export async function getVenueAvailability(
     hour12: false,
   }).format(now); // "19:43"
 
-  // Enforce 7-day booking window strictly
-  const windowValidation = validateBookingDateInWindow(dateStr, venueTz);
-  if (!windowValidation.valid) {
-    throw new Error("This date is no longer available for online booking.");
+  // Enforce 7-day booking window strictly for public booking unless explicitly ignored (e.g. admin or pass booking)
+  if (!ignoreWindow) {
+    const windowValidation = validateBookingDateInWindow(dateStr, venueTz);
+    if (!windowValidation.valid) {
+      throw new Error("This date is no longer available for online booking.");
+    }
   }
 
   // Calculate day of week from dateStr (in venue timezone)

@@ -10,7 +10,7 @@ export interface SessionUser {
   id: string;
   email: string;
   name: string;
-  role: "super_admin" | "venue_manager" | "staff";
+  role: "super_admin" | "admin" | "venue_manager" | "staff";
   businessId: string;
   venueId?: string | null;
 }
@@ -61,7 +61,9 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
 /**
  * Require an authenticated user with minimum role permission
  */
-export async function requireAuth(allowedRoles: string[] = ["super_admin", "venue_manager", "staff"]): Promise<SessionUser> {
+export async function requireAuth(
+  allowedRoles: string[] = ["super_admin", "admin", "venue_manager", "staff"]
+): Promise<SessionUser> {
   const user = await getCurrentUser();
   if (!user) {
     throw new Error("UNAUTHORIZED");
@@ -73,3 +75,11 @@ export async function requireAuth(allowedRoles: string[] = ["super_admin", "venu
 
   return user;
 }
+
+/**
+ * Require Super Admin role specifically
+ */
+export async function requireSuperAdmin(): Promise<SessionUser> {
+  return requireAuth(["super_admin"]);
+}
+

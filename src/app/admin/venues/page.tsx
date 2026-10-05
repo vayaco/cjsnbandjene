@@ -19,6 +19,8 @@ import {
   Upload,
   Edit,
   Eye,
+  Trash2,
+  AlertTriangle,
 } from "lucide-react";
 import { ImageLightbox } from "@/components/ui/image-lightbox";
 
@@ -50,6 +52,19 @@ export default function AdminVenuesPage() {
   const [editCloseTime, setEditCloseTime] = useState("");
   const [editImageUrl, setEditImageUrl] = useState("");
   const [isUpdatingVenue, setIsUpdatingVenue] = useState(false);
+
+  // Delete venue state
+  const [venueToDelete, setVenueToDelete] = useState<any>(null);
+  const [isDeletingVenue, setIsDeletingVenue] = useState(false);
+
+  // Manage courts states
+  const [newCourtName, setNewCourtName] = useState("");
+  const [newCourtPrice, setNewCourtPrice] = useState("500");
+  const [isAddingCourt, setIsAddingCourt] = useState(false);
+  const [deletingCourtId, setDeletingCourtId] = useState<string | null>(null);
+  const [editingCourtPriceId, setEditingCourtPriceId] = useState<string | null>(null);
+  const [editingCourtPriceValue, setEditingCourtPriceValue] = useState<string>("");
+  const [isUpdatingCourtPrice, setIsUpdatingCourtPrice] = useState(false);
 
   // Full-screen image preview lightbox
   const [previewImage, setPreviewImage] = useState<{ url: string; title: string } | null>(null);
@@ -215,11 +230,130 @@ export default function AdminVenuesPage() {
     }
   };
 
+  const confirmDeleteVenue = async () => {
+    if (!venueToDelete) return;
+    setIsDeletingVenue(true);
+    try {
+      const res = await fetch(`/api/v1/admin/venues/${venueToDelete.id}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (data.success) {
+        if (editVenue?.id === venueToDelete.id) {
+          setEditVenue(null);
+        }
+        setVenueToDelete(null);
+        loadVenues();
+      } else {
+        alert(data.error || "Failed to delete venue");
+      }
+    } catch {
+      alert("Error deleting venue");
+    } finally {
+      setIsDeletingVenue(false);
+    }
+  };
+
+  const handleAddCourt = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!manageVenue || !newCourtName.trim()) return;
+    setIsAddingCourt(true);
+    try {
+      const res = await fetch("/api/v1/admin/resources", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          venueId: manageVenue.id,
+          name: newCourtName.trim(),
+          defaultPrice: Number(newCourtPrice) || 500,
+        }),
+      });
+      const data = await res.json();
+      if (data.success && data.resource) {
+        const updatedResources = [...(manageVenue.resources || []), data.resource];
+        setManageVenue({
+          ...manageVenue,
+          resources: updatedResources,
+        });
+        setVenues(venues.map((v) => (v.id === manageVenue.id ? { ...v, resources: updatedResources } : v)));
+        setNewCourtName("");
+      } else {
+        alert(data.error || "Failed to add court");
+      }
+    } catch {
+      alert("Error adding court");
+    } finally {
+      setIsAddingCourt(false);
+    }
+  };
+
+  const handleDeleteCourt = async (resourceId: string, courtName: string) => {
+    if (!manageVenue) return;
+    if (!confirm(`Are you sure you want to delete ${courtName}? Any future bookings on this court may be affected.`)) return;
+
+    setDeletingCourtId(resourceId);
+    try {
+      const res = await fetch(`/api/v1/admin/resources/${resourceId}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (data.success) {
+        const updatedResources = (manageVenue.resources || []).filter((r: any) => r.id !== resourceId);
+        setManageVenue({
+          ...manageVenue,
+          resources: updatedResources,
+        });
+        setVenues(venues.map((v) => (v.id === manageVenue.id ? { ...v, resources: updatedResources } : v)));
+      } else {
+        alert(data.error || "Failed to delete court");
+      }
+    } catch {
+      alert("Error deleting court");
+    } finally {
+      setDeletingCourtId(null);
+    }
+  };
+
+  const handleUpdateCourtPrice = async (resourceId: string) => {
+    const parsedPrice = Number(editingCourtPriceValue);
+    if (isNaN(parsedPrice) || parsedPrice < 0) {
+      alert("Please enter a valid price amount");
+      return;
+    }
+
+    setIsUpdatingCourtPrice(true);
+    try {
+      const res = await fetch(`/api/v1/admin/resources/${resourceId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ defaultPrice: parsedPrice }),
+      });
+      const data = await res.json();
+      if (data.success && data.resource) {
+        const updatedResources = (manageVenue.resources || []).map((r: any) =>
+          r.id === resourceId ? { ...r, defaultPrice: parsedPrice } : r
+        );
+        setManageVenue({
+          ...manageVenue,
+          resources: updatedResources,
+        });
+        setVenues(venues.map((v) => (v.id === manageVenue.id ? { ...v, resources: updatedResources } : v)));
+        setEditingCourtPriceId(null);
+      } else {
+        alert(data.error || "Failed to update court price");
+      }
+    } catch {
+      alert("Error updating court price");
+    } finally {
+      setIsUpdatingCourtPrice(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-black text-slate-900 tracking-tight">Venues & Courts</h1>
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Venues & Courts</h1>
           <p className="text-xs text-slate-500 mt-0.5">
             Configure branches, court inventories, and operating schedules
           </p>
@@ -227,7 +361,7 @@ export default function AdminVenuesPage() {
 
         <Button
           onClick={() => setShowAddModal(true)}
-          className="bg-emerald-600 hover:bg-emerald-700 font-bold gap-1.5 text-xs"
+          className="font-semibold gap-1.5 text-xs h-10 px-5"
         >
           <Plus className="w-4 h-4" />
           <span>Add New Venue</span>
@@ -256,7 +390,7 @@ export default function AdminVenuesPage() {
           </p>
           <Button
             onClick={() => setShowAddModal(true)}
-            className="bg-emerald-600 hover:bg-emerald-700 font-bold text-xs gap-1.5"
+            className="font-bold text-xs gap-1.5 h-10 px-5"
           >
             <Plus className="w-4 h-4" />
             <span>Add First Venue</span>
@@ -299,9 +433,19 @@ export default function AdminVenuesPage() {
                       {venue.name}
                     </CardTitle>
                   </div>
-                  <Badge className="bg-emerald-100 text-emerald-800 text-[10px] font-bold">
-                    {venue.status}
-                  </Badge>
+                  <div className="flex items-center gap-1.5">
+                    <Badge className="bg-emerald-100 text-emerald-800 text-[10px] font-bold">
+                      {venue.status}
+                    </Badge>
+                    <button
+                      type="button"
+                      onClick={() => setVenueToDelete(venue)}
+                      className="p-1 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                      title="Delete venue"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
               </CardHeader>
 
@@ -329,7 +473,7 @@ export default function AdminVenuesPage() {
                   <span className="text-slate-400">Total Bookings:</span>
                   <span className="font-bold text-slate-900">{venue._count?.bookings || 0}</span>
                 </div>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-2 gap-2 mb-2">
                   <Button 
                     variant="outline" 
                     className="w-full text-xs font-bold tap-target"
@@ -346,6 +490,15 @@ export default function AdminVenuesPage() {
                     <span>Edit & Image</span>
                   </Button>
                 </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setVenueToDelete(venue)}
+                  className="w-full text-xs font-bold text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-rose-200 h-8 gap-1.5"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>Delete Venue</span>
+                </Button>
               </div>
             </Card>
           ))}
@@ -478,14 +631,14 @@ export default function AdminVenuesPage() {
                   type="button"
                   variant="outline"
                   onClick={() => setShowAddModal(false)}
-                  className="flex-1"
+                  className="flex-1 h-10 font-semibold text-xs"
                 >
                   Cancel
                 </Button>
                 <Button
                   type="submit"
                   disabled={isSubmitting || isUploading}
-                  className="flex-1 bg-emerald-600 hover:bg-emerald-700 font-bold"
+                  className="flex-1 font-bold text-xs h-10"
                 >
                   {isSubmitting ? "Creating..." : "Create Venue"}
                 </Button>
@@ -598,22 +751,33 @@ export default function AdminVenuesPage() {
                 />
               </div>
 
-              <div className="pt-3 flex gap-2 border-t border-slate-100">
+              <div className="pt-3 flex items-center justify-between gap-2 border-t border-slate-100">
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => setEditVenue(null)}
-                  className="flex-1"
+                  onClick={() => setVenueToDelete(editVenue)}
+                  className="text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-rose-200 text-xs font-bold h-9 px-4"
                 >
-                  Cancel
+                  <Trash2 className="w-3.5 h-3.5 mr-1" />
+                  Delete Venue
                 </Button>
-                <Button
-                  type="submit"
-                  disabled={isUpdatingVenue || isUploading}
-                  className="flex-1 bg-emerald-600 hover:bg-emerald-700 font-bold"
-                >
-                  {isUpdatingVenue ? "Saving..." : "Save Changes"}
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setEditVenue(null)}
+                    className="text-xs h-9 px-4"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    disabled={isUpdatingVenue || isUploading}
+                    className="font-bold text-xs h-9 px-5"
+                  >
+                    {isUpdatingVenue ? "Saving..." : "Save Changes"}
+                  </Button>
+                </div>
               </div>
             </form>
           </div>
@@ -631,9 +795,12 @@ export default function AdminVenuesPage() {
       {/* Manage Courts Modal */}
       {manageVenue && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-          <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-slate-200">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-4">
-              <h3 className="font-bold text-slate-900 text-lg">Manage Courts: {manageVenue.name}</h3>
+              <div>
+                <h3 className="font-bold text-slate-900 text-lg">Manage Courts</h3>
+                <p className="text-xs text-slate-500 font-medium">{manageVenue.name}</p>
+              </div>
               <button
                 onClick={() => setManageVenue(null)}
                 className="p-1.5 rounded-full hover:bg-slate-100 text-slate-400"
@@ -642,28 +809,167 @@ export default function AdminVenuesPage() {
               </button>
             </div>
 
-            <div className="space-y-3">
+            {/* List of Courts */}
+            <div className="space-y-2.5 max-h-64 overflow-y-auto pr-1">
               {manageVenue.resources?.map((resource: any) => (
-                <div key={resource.id} className="flex items-center justify-between p-3 border border-slate-200 rounded-xl">
-                  <div>
-                    <h4 className="font-bold text-slate-800">{resource.name}</h4>
-                    <span className={`text-[10px] uppercase font-bold px-1.5 py-0.5 rounded-md ${resource.status === 'maintenance' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'}`}>
-                      {resource.status}
-                    </span>
+                <div key={resource.id} className="flex items-center justify-between p-3 border border-slate-200 rounded-xl bg-slate-50/50">
+                  <div className="flex items-center gap-2.5">
+                    <div>
+                      <h4 className="font-bold text-slate-800 text-xs">{resource.name}</h4>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className={`text-[10px] uppercase font-bold px-1.5 py-0.5 rounded-md ${resource.status === 'maintenance' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'}`}>
+                          {resource.status}
+                        </span>
+
+                        {editingCourtPriceId === resource.id ? (
+                          <div className="flex items-center gap-1">
+                            <span className="text-xs font-bold text-slate-700">₹</span>
+                            <Input
+                              type="number"
+                              value={editingCourtPriceValue}
+                              onChange={(e) => setEditingCourtPriceValue(e.target.value)}
+                              className="w-20 h-7 text-xs px-1.5 py-0.5 bg-white"
+                              autoFocus
+                            />
+                            <Button
+                              size="sm"
+                              type="button"
+                              className="h-7 px-2 text-[10px] bg-emerald-600 hover:bg-emerald-700 font-bold"
+                              disabled={isUpdatingCourtPrice}
+                              onClick={() => handleUpdateCourtPrice(resource.id)}
+                            >
+                              Save
+                            </Button>
+                            <Button
+                              size="sm"
+                              type="button"
+                              variant="ghost"
+                              className="h-7 px-1.5 text-[10px] text-slate-400"
+                              onClick={() => setEditingCourtPriceId(null)}
+                            >
+                              ✕
+                            </Button>
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setEditingCourtPriceId(resource.id);
+                              setEditingCourtPriceValue(String(resource.defaultPrice));
+                            }}
+                            className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-2 py-0.5 rounded-md transition-colors flex items-center gap-1"
+                            title="Click to edit hourly price"
+                          >
+                            <span>₹{resource.defaultPrice}/hr</span>
+                            <Edit className="w-2.5 h-2.5 text-emerald-600" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                  <Button
-                    size="sm"
-                    variant={resource.status === "maintenance" ? "default" : "outline"}
-                    className="text-xs font-bold tap-target"
-                    onClick={() => handleToggleMaintenance(resource.id, resource.status)}
-                  >
-                    {resource.status === "maintenance" ? "Enable Court" : "Set Maintenance"}
-                  </Button>
+                  <div className="flex items-center gap-1.5">
+                    <Button
+                      size="sm"
+                      variant={resource.status === "maintenance" ? "default" : "outline"}
+                      className="text-xs font-bold h-8 px-2.5"
+                      onClick={() => handleToggleMaintenance(resource.id, resource.status)}
+                    >
+                      {resource.status === "maintenance" ? "Enable Court" : "Maintenance"}
+                    </Button>
+                    <button
+                      type="button"
+                      disabled={deletingCourtId === resource.id}
+                      onClick={() => handleDeleteCourt(resource.id, resource.name)}
+                      className="p-2 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                      title="Delete Court"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
               ))}
               {(!manageVenue.resources || manageVenue.resources.length === 0) && (
-                <p className="text-slate-500 text-sm text-center">No courts found.</p>
+                <p className="text-slate-500 text-sm text-center py-4">No courts found. Add your first court below.</p>
               )}
+            </div>
+
+            {/* Add New Court Form */}
+            <form onSubmit={handleAddCourt} className="mt-4 pt-4 border-t border-slate-100">
+              <h4 className="font-bold text-xs text-slate-900 mb-2">Add New Court</h4>
+              <div className="grid grid-cols-2 gap-2 mb-2">
+                <div>
+                  <label className="text-[11px] font-medium text-slate-600 block mb-1">Court Name</label>
+                  <Input
+                    required
+                    placeholder="e.g. Court 5"
+                    value={newCourtName}
+                    onChange={(e) => setNewCourtName(e.target.value)}
+                    className="h-9 text-xs"
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] font-medium text-slate-600 block mb-1">Price per Hour (₹)</label>
+                  <Input
+                    type="number"
+                    min={0}
+                    placeholder="500"
+                    value={newCourtPrice}
+                    onChange={(e) => setNewCourtPrice(e.target.value)}
+                    className="h-9 text-xs"
+                  />
+                </div>
+              </div>
+              <Button
+                type="submit"
+                disabled={isAddingCourt || !newCourtName.trim()}
+                className="w-full h-10 font-bold text-xs gap-1.5"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>{isAddingCourt ? "Adding Court..." : "Add Court to Venue"}</span>
+              </Button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Venue Confirmation Modal */}
+      {venueToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200">
+            <div className="flex items-center gap-3 text-rose-600 mb-3">
+              <div className="p-2.5 bg-rose-50 rounded-2xl">
+                <AlertTriangle className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="font-bold text-slate-900 text-base">Delete Venue?</h3>
+                <p className="text-xs text-slate-500">This action cannot be undone</p>
+              </div>
+            </div>
+
+            <p className="text-xs text-slate-600 leading-relaxed mb-4">
+              Are you sure you want to permanently delete <strong className="text-slate-900">{venueToDelete.name}</strong> ({venueToDelete.code})? 
+              This will remove the venue, all its courts, and associated booking records.
+            </p>
+
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setVenueToDelete(null)}
+                disabled={isDeletingVenue}
+                className="flex-1 text-xs h-10 font-semibold"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                variant="destructive"
+                onClick={confirmDeleteVenue}
+                disabled={isDeletingVenue}
+                className="flex-1 font-bold text-xs h-10"
+              >
+                {isDeletingVenue ? "Deleting..." : "Yes, Delete Venue"}
+              </Button>
             </div>
           </div>
         </div>

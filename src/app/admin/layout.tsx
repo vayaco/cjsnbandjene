@@ -17,6 +17,7 @@ import {
   X,
   Shield,
   ChevronDown,
+  Layers,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -26,11 +27,13 @@ const navigationItems = [
   { name: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
   { name: "Calendar", href: "/admin/calendar", icon: Calendar },
   { name: "Bookings", href: "/admin/bookings", icon: Ticket },
+  { name: "Monthly Passes", href: "/admin/passes", icon: Layers },
   { name: "New Booking", href: "/admin/bookings/new", icon: PlusCircle },
   { name: "Venues & Courts", href: "/admin/venues", icon: Building2 },
   { name: "Holidays", href: "/admin/holidays", icon: Calendar },
   { name: "Customers", href: "/admin/customers", icon: Users },
   { name: "Reports", href: "/admin/reports", icon: FileBarChart },
+  { name: "Admin Accounts", href: "/admin/admins", icon: Shield },
   { name: "Settings & Audit", href: "/admin/settings", icon: Settings },
 ];
 
@@ -44,8 +47,21 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }
 
   const [user, setUser] = useState<any>(null);
+  const [business, setBusiness] = useState<any>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isLoadingAuth, setIsLoadingAuth] = useState(true);
+
+  const fetchBusiness = async () => {
+    try {
+      const res = await fetch("/api/v1/admin/business");
+      const data = await res.json();
+      if (data.success && data.business) {
+        setBusiness(data.business);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   useEffect(() => {
     async function checkAuth() {
@@ -54,6 +70,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         const data = await res.json();
         if (data.authenticated) {
           setUser(data.user);
+          fetchBusiness();
         } else {
           router.push("/admin/login");
         }
@@ -64,17 +81,38 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       }
     }
     checkAuth();
+
+    const handleUpdate = (e: any) => {
+      if (e?.detail) {
+        setBusiness((prev: any) => ({ ...prev, ...e.detail }));
+      } else {
+        fetchBusiness();
+      }
+    };
+    window.addEventListener("businessSettingsUpdated", handleUpdate);
+    return () => window.removeEventListener("businessSettingsUpdated", handleUpdate);
   }, [router]);
 
+  const getInitials = (name?: string) => {
+    if (!name) return "BA";
+    const parts = name.trim().split(/\s+/);
+    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  };
+
   const handleLogout = async () => {
-    await fetch("/api/v1/auth/logout", { method: "POST" });
-    router.push("/admin/login");
+    try {
+      await fetch("/api/v1/auth/logout", { method: "POST" });
+      router.push("/admin/login");
+    } catch {
+      router.push("/admin/login");
+    }
   };
 
   if (isLoadingAuth) {
     return (
       <div className="min-h-screen bg-slate-900 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500" />
+        <div className="w-8 h-8 rounded-full border-2 border-emerald-500 border-t-transparent animate-spin" />
       </div>
     );
   }
@@ -97,13 +135,23 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         )}
       >
         {/* Brand Header */}
-        <div className="h-16 px-6 flex items-center justify-between border-b border-slate-800">
-          <Link href="/admin/dashboard" className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-emerald-500 flex items-center justify-center text-white font-black text-sm">
-              BA
-            </div>
-            <div>
-              <span className="font-bold text-white tracking-tight text-base">Badminton Academy</span>
+        <div className="h-16 px-5 flex items-center justify-between border-b border-slate-800">
+          <Link href="/admin/dashboard" className="flex items-center gap-2.5 overflow-hidden">
+            {business?.logoUrl ? (
+              <img
+                src={business.logoUrl}
+                alt={business.name || "Logo"}
+                className="w-8 h-8 rounded-xl object-contain bg-white p-0.5 shrink-0 shadow-xs"
+              />
+            ) : (
+              <div className="w-8 h-8 rounded-xl bg-emerald-500 flex items-center justify-center text-white font-bold text-xs shrink-0 tracking-wider">
+                {getInitials(business?.name)}
+              </div>
+            )}
+            <div className="min-w-0">
+              <span className="font-semibold text-white tracking-tight text-sm truncate block">
+                {business?.name || "Badminton Academy"}
+              </span>
               <span className="block text-[10px] text-emerald-400 font-semibold tracking-wider uppercase">
                 Admin OS
               </span>
@@ -111,7 +159,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </Link>
           <button
             onClick={() => setSidebarOpen(false)}
-            className="lg:hidden text-slate-400 hover:text-white"
+            className="lg:hidden text-slate-400 hover:text-white shrink-0 ml-2"
           >
             <X className="w-5 h-5" />
           </button>

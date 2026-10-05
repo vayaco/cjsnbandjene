@@ -80,7 +80,7 @@ export default function AdminDashboardPage() {
       {/* Top Header & Venue Filter */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-black text-slate-900 tracking-tight">Business Overview</h1>
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Business Overview</h1>
           <p className="text-xs text-slate-500 mt-0.5">Real-time revenue, bookings, and court utilization</p>
         </div>
 
@@ -91,7 +91,7 @@ export default function AdminDashboardPage() {
             <select
               value={selectedVenue}
               onChange={(e) => setSelectedVenue(e.target.value)}
-              className="text-xs font-bold text-slate-800 bg-transparent border-none focus:outline-none cursor-pointer"
+              className="text-xs font-semibold text-slate-800 bg-transparent border-none focus:outline-none cursor-pointer"
             >
               <option value="all">All Venues</option>
               {data?.venues?.map((v: any) => (
@@ -103,7 +103,7 @@ export default function AdminDashboardPage() {
           </div>
 
           <Link href="/admin/bookings/new">
-            <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700 font-bold gap-1.5 text-xs">
+            <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700 font-semibold gap-1.5 text-xs">
               <PlusCircle className="w-4 h-4" />
               <span>New Booking</span>
             </Button>
@@ -117,7 +117,7 @@ export default function AdminDashboardPage() {
         <Card className="border-slate-200/90 shadow-xs">
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
+              <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
                 Revenue Today
               </span>
               <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
@@ -125,11 +125,11 @@ export default function AdminDashboardPage() {
               </div>
             </div>
             <div className="mt-2 flex items-baseline gap-2">
-              <span className="text-2xl font-black text-slate-900">
+              <span className="text-2xl font-bold tabular-nums text-slate-900">
                 {formatCurrency(metrics.revenueToday)}
               </span>
             </div>
-            <span className="text-[11px] text-emerald-600 font-semibold mt-1 block">
+            <span className="text-[11px] text-emerald-600 font-medium mt-1 block">
               Live confirmed bookings
             </span>
           </CardContent>
@@ -139,7 +139,7 @@ export default function AdminDashboardPage() {
         <Card className="border-slate-200/90 shadow-xs">
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
+              <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
                 Bookings Today
               </span>
               <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
@@ -147,7 +147,7 @@ export default function AdminDashboardPage() {
               </div>
             </div>
             <div className="mt-2 flex items-baseline gap-2">
-              <span className="text-2xl font-black text-slate-900">{metrics.bookingsToday}</span>
+              <span className="text-2xl font-bold tabular-nums text-slate-900">{metrics.bookingsToday}</span>
               <span className="text-xs text-slate-500 font-medium">slots booked</span>
             </div>
             <span className="text-[11px] text-slate-400 mt-1 block">
@@ -160,7 +160,7 @@ export default function AdminDashboardPage() {
         <Card className="border-slate-200/90 shadow-xs">
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
+              <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
                 Occupancy Rate
               </span>
               <div className="w-8 h-8 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center">
@@ -168,7 +168,7 @@ export default function AdminDashboardPage() {
               </div>
             </div>
             <div className="mt-2 flex items-baseline gap-2">
-              <span className="text-2xl font-black text-slate-900">{metrics.occupancyRate}%</span>
+              <span className="text-2xl font-bold tabular-nums text-slate-900">{metrics.occupancyRate}%</span>
               <span className="text-xs text-slate-500 font-medium">utilization</span>
             </div>
             <span className="text-[11px] text-slate-400 mt-1 block">
@@ -181,7 +181,7 @@ export default function AdminDashboardPage() {
         <Card className="border-slate-200/90 shadow-xs">
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
+              <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
                 Cancellations
               </span>
               <div className="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center">
@@ -189,7 +189,7 @@ export default function AdminDashboardPage() {
               </div>
             </div>
             <div className="mt-2 flex items-baseline gap-2">
-              <span className="text-2xl font-black text-slate-900">
+              <span className="text-2xl font-bold tabular-nums text-slate-900">
                 {metrics.cancellationsToday}
               </span>
               <span className="text-xs text-slate-500 font-medium">today</span>
@@ -308,29 +308,29 @@ export default function AdminDashboardPage() {
                           {b.customer?.name}
                         </span>
                         <span className="text-slate-300">•</span>
-                        <span className="text-xs text-slate-500">{b.customer?.phone}</span>
+                        <span className="text-xs font-mono tabular-nums text-slate-500">{b.customer?.phone}</span>
                       </div>
                       <div className="flex items-center gap-2 text-xs text-slate-500 mt-0.5">
                         <span className="font-semibold text-slate-700">{b.venue?.name}</span>
                         <span>•</span>
                         <span>{b.resource?.name}</span>
                         <span>•</span>
-                        <span>{b.dateStr}</span>
+                        <span className="tabular-nums">{b.dateStr}</span>
                         <span>•</span>
-                        <span>{formatTimeRange(b.startTimeStr, b.endTimeStr)}</span>
+                        <span className="font-mono tabular-nums">{formatTimeRange(b.startTimeStr, b.endTimeStr)}</span>
                       </div>
                     </div>
                   </div>
 
                   <div className="flex items-center justify-between sm:justify-end gap-3">
-                    <span className="font-black text-slate-900 text-sm">
+                    <span className="font-bold tabular-nums text-slate-900 text-sm">
                       {formatCurrency(b.total)}
                     </span>
                     <Badge
                       className={
                         b.status === "confirmed"
-                          ? "bg-emerald-100 text-emerald-800 text-[10px] font-bold"
-                          : "bg-rose-100 text-rose-800 text-[10px] font-bold"
+                          ? "bg-emerald-100 text-emerald-800 text-[10px] font-semibold uppercase tracking-wider"
+                          : "bg-rose-100 text-rose-800 text-[10px] font-semibold uppercase tracking-wider"
                       }
                     >
                       {b.status}

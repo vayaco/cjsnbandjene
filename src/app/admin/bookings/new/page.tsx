@@ -116,7 +116,7 @@ export default function NewManualBookingPage() {
       </Link>
 
       <div>
-        <h1 className="text-2xl font-black text-slate-900 tracking-tight">Create Manual Booking</h1>
+        <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Create Manual Booking</h1>
         <p className="text-xs text-slate-500 mt-0.5">
           Record walk-in, phone reservation, or desk payment
         </p>
@@ -217,10 +217,10 @@ export default function NewManualBookingPage() {
                                     : "bg-white border-slate-200 hover:border-emerald-500 text-slate-800"
                                 }`}
                               >
-                                <span className="block text-xs font-bold">
+                                <span className="block text-xs font-semibold font-mono tabular-nums">
                                   {formatTime(slot.startTime)}
                                 </span>
-                                <span className="text-[10px] text-emerald-500 font-extrabold">
+                                <span className="text-[10px] text-emerald-500 font-semibold tabular-nums">
                                   {formatCurrency(slot.price)}
                                 </span>
                               </button>
@@ -296,13 +296,13 @@ export default function NewManualBookingPage() {
               <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
                 <div>
                   <span className="text-xs text-slate-500 font-medium block">Selected Court Slot</span>
-                  <span className="font-bold text-slate-900 text-sm">
-                    {selectedSlot.resourceName} • {formatTimeRange(selectedSlot.startTime, selectedSlot.endTime)}
+                  <span className="font-semibold text-slate-900 text-sm">
+                    {selectedSlot.resourceName} • <span className="font-mono tabular-nums">{formatTimeRange(selectedSlot.startTime, selectedSlot.endTime)}</span>
                   </span>
                 </div>
                 <div className="text-right">
                   <span className="text-xs text-slate-500 block">Total Due</span>
-                  <span className="text-lg font-black text-emerald-600">
+                  <span className="text-lg font-bold tabular-nums text-emerald-600">
                     {formatCurrency(selectedSlot.price)}
                   </span>
                 </div>
@@ -314,7 +314,7 @@ export default function NewManualBookingPage() {
         <Button
           type="submit"
           disabled={isSubmitting || !selectedSlot}
-          className="w-full h-12 bg-emerald-600 hover:bg-emerald-700 font-bold"
+          className="w-full h-12 bg-emerald-600 hover:bg-emerald-700 font-semibold"
         >
           {isSubmitting ? "Confirming Booking..." : "Confirm & Save Manual Booking"}
         </Button>

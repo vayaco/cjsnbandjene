@@ -51,10 +51,10 @@ export default function AdminLoginPage() {
       <div className="w-full max-w-md space-y-6">
         {/* Brand */}
         <div className="text-center space-y-2">
-          <div className="inline-flex w-12 h-12 rounded-2xl bg-emerald-500 items-center justify-center text-white font-black text-xl shadow-lg shadow-emerald-500/30">
+          <div className="inline-flex w-12 h-12 rounded-2xl bg-emerald-500 items-center justify-center text-white font-bold text-lg shadow-lg shadow-emerald-500/30">
             BA
           </div>
-          <h1 className="text-2xl font-black text-white tracking-tight">
+          <h1 className="text-2xl font-bold text-white tracking-tight">
             Badminton Academy Business OS
           </h1>
           <p className="text-xs text-slate-400">
@@ -109,7 +109,7 @@ export default function AdminLoginPage() {
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="w-full h-11 rounded-xl font-bold bg-emerald-600 hover:bg-emerald-700 text-white gap-2 mt-2"
+                className="w-full h-12 font-bold gap-2 mt-2"
               >
                 {isLoading ? (
                   <span>Signing In...</span>
@@ -132,7 +132,7 @@ export default function AdminLoginPage() {
                 variant="outline"
                 size="sm"
                 onClick={() => handleQuickFill("admin@smashzone.in", "admin123")}
-                className="w-full bg-slate-900 border-slate-700 text-slate-300 hover:text-white hover:bg-slate-700 text-xs py-2"
+                className="w-full h-9 bg-slate-900 border-slate-700 text-slate-300 hover:text-white hover:bg-slate-800 text-xs"
               >
                 Auto-fill Super Admin (admin@smashzone.in)
               </Button>

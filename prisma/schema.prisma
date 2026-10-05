@@ -12,6 +12,7 @@ model Business {
   name               String
   slug               String         @unique
   logoUrl            String?
+  websiteUrl         String?
   supportPhone       String?
   supportEmail       String?
   cancellationPolicy String?
@@ -23,6 +24,7 @@ model Business {
   users              BusinessUser[]
   customers          Customer[]
   bookings           Booking[]
+  monthlyPasses      MonthlyPass[]
   auditLogs          AuditLog[]
   payments           Payment[]
   holidays           Holiday[]
@@ -36,7 +38,7 @@ model BusinessUser {
   name         String
   email        String    @unique
   passwordHash String
-  role         String    @default("super_admin") // super_admin, venue_manager, staff
+  role         String    @default("admin") // super_admin, admin, venue_manager, staff
   venueId      String?   // For venue-scoped managers/staff
   status       String    @default("active")     // active, inactive
   createdAt    DateTime  @default(now())
@@ -73,6 +75,7 @@ model Venue {
   blockedPeriods      BlockedPeriod[]
   pricingRules        PricingRule[]
   bookings            Booking[]
+  monthlyPasses       MonthlyPass[]
   assignedUsers       BusinessUser[]
   holidays            Holiday[]
 }
@@ -92,6 +95,7 @@ model Resource {
 
   venue          Venue           @relation(fields: [venueId], references: [id], onDelete: Cascade)
   bookings       Booking[]
+  monthlyPasses  MonthlyPass[]
   blockedPeriods BlockedPeriod[]
   slotHolds      SlotHold[]
 }
@@ -154,43 +158,47 @@ model Customer {
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 
-  business          Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  business          Business      @relation(fields: [businessId], references: [id], onDelete: Cascade)
   bookings          Booking[]
+  monthlyPasses     MonthlyPass[]
 
   @@unique([businessId, phone])
 }
 
 model Booking {
-  id                 String    @id @default(cuid())
-  bookingNumber      String    @unique // e.g. "BD-2026-000184"
+  id                 String        @id @default(cuid())
+  bookingNumber      String        @unique // e.g. "BD-2026-000184"
   businessId         String
   venueId            String
   resourceId         String
   customerId         String
+  passId             String?       // Linked monthly pass if created via pass system
+  isPassBooking      Boolean       @default(false)
   startAt            DateTime
   endAt              DateTime
-  dateStr            String    // "2026-09-15"
-  startTimeStr       String    // "18:00"
-  endTimeStr         String    // "19:00"
-  status             String    @default("confirmed") // payment_pending, confirmed, completed, cancelled, no_show
+  dateStr            String        // "2026-09-15"
+  startTimeStr       String        // "18:00"
+  endTimeStr         String        // "19:00"
+  status             String        @default("confirmed") // payment_pending, confirmed, completed, cancelled, no_show
   subtotal           Float
-  discount           Float     @default(0)
-  tax                Float     @default(0)
+  discount           Float         @default(0)
+  tax                Float         @default(0)
   total              Float
-  paymentStatus      String    @default("successful") // unpaid, pending, successful, failed, refunded, manual
-  paymentMethod      String?   @default("placeholder") // upi, card, netbanking, cash, pass, manual, placeholder
+  paymentStatus      String        @default("successful") // unpaid, pending, successful, failed, refunded, manual
+  paymentMethod      String?       @default("placeholder") // upi, card, netbanking, cash, pass, manual, placeholder
   cancellationReason String?
   cancelledAt        DateTime?
   holdToken          String?
   notes              String?
-  createdBy          String    @default("customer") // customer, staff, manager, admin
-  createdAt          DateTime  @default(now())
-  updatedAt          DateTime  @updatedAt
+  createdBy          String        @default("customer") // customer, staff, manager, admin, super_admin
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
 
-  business           Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
-  venue              Venue     @relation(fields: [venueId], references: [id], onDelete: Cascade)
-  resource           Resource  @relation(fields: [resourceId], references: [id], onDelete: Cascade)
-  customer           Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  business           Business      @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  venue              Venue         @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  resource           Resource      @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  customer           Customer      @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  pass               MonthlyPass?  @relation(fields: [passId], references: [id], onDelete: SetNull)
   payments           Payment[]
   accessTokens       BookingAccessToken[]
   notifications      Notification[]
@@ -198,6 +206,7 @@ model Booking {
   @@index([resourceId, dateStr, startTimeStr])
   @@index([venueId, dateStr])
   @@index([businessId, status])
+  @@index([passId])
 }
 
 model Payment {
@@ -329,4 +338,40 @@ model Notification {
   @@index([bookingId, type])
   @@index([businessId, status])
 }
+
+model MonthlyPass {
+  id              String    @id @default(cuid())
+  passNumber      String    @unique // e.g. "PASS-202610-0001"
+  businessId      String
+  venueId         String
+  resourceId      String
+  customerId      String
+  month           Int       // 1 - 12
+  year            Int       // e.g. 2026
+  daysOfWeek      String    // JSON string e.g. "[0]" or "[0,6]"
+  daysLabel       String    // e.g. "Every Sunday", "Weekends (Sat & Sun)"
+  startTimeStr    String    // "07:00"
+  endTimeStr      String    // "08:00"
+  totalSessions   Int       // Count of confirmed dates in the month
+  pricePerSession Float     // Price per session
+  totalAmount     Float     // Total pass cost
+  paymentStatus   String    @default("successful") // successful, pending, complimentary
+  paymentMethod   String    @default("cash")       // cash, upi, bank_transfer, card, complimentary
+  status          String    @default("active")     // active, cancelled, completed
+  notes           String?
+  createdBy       String    @default("admin")      // admin, super_admin
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  business        Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  venue           Venue     @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  resource        Resource  @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  customer        Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  bookings        Booking[]
+
+  @@index([businessId, status])
+  @@index([venueId, month, year])
+  @@index([customerId])
+}
+
 

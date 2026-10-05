@@ -3,20 +3,42 @@ import { db } from "@/lib/db";
 
 export async function GET() {
   try {
-    const venues = await db.venue.findMany({
-      where: { status: "active" },
-      include: {
-        resources: {
-          where: { status: "active" },
-          select: { id: true, defaultPrice: true },
+    const [venues, businessRecord] = await Promise.all([
+      db.venue.findMany({
+        where: { status: "active" },
+        include: {
+          resources: {
+            where: { status: "active" },
+            select: { id: true, defaultPrice: true },
+          },
+          pricingRules: {
+            where: { status: "active" },
+            select: { price: true },
+          },
         },
-        pricingRules: {
-          where: { status: "active" },
-          select: { price: true },
+        orderBy: { name: "asc" },
+      }),
+      db.business.findFirst({
+        select: {
+          name: true,
+          slug: true,
+          logoUrl: true,
+          supportPhone: true,
+          supportEmail: true,
+          festiveTheme: true,
         },
-      },
-      orderBy: { name: "asc" },
-    });
+      }),
+    ]);
+
+    let websiteUrl = "https://niteshbadmintonacademy.com";
+    try {
+      const rawRows: any = await db.$queryRawUnsafe("SELECT websiteUrl FROM Business LIMIT 1");
+      if (rawRows?.[0]?.websiteUrl) {
+        websiteUrl = rawRows[0].websiteUrl;
+      }
+    } catch {}
+
+    const business = businessRecord ? { ...businessRecord, websiteUrl } : null;
 
     const result = venues.map((v) => {
       // Find starting price
@@ -42,7 +64,7 @@ export async function GET() {
       };
     });
 
-    return NextResponse.json({ success: true, venues: result });
+    return NextResponse.json({ success: true, business, venues: result });
   } catch (error: any) {
     console.error("Error fetching venues:", error);
     return NextResponse.json(

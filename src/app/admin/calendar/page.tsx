@@ -74,7 +74,7 @@ export default function AdminCalendarPage() {
       setIsLoading(true);
       const dateStr = format(selectedDate, "yyyy-MM-dd");
       const res = await fetch(
-        `/api/v1/availability?venueId=${selectedVenueId}&date=${dateStr}`
+        `/api/v1/availability?venueId=${selectedVenueId}&date=${dateStr}&ignoreWindow=true`
       );
       const data = await res.json();
       if (data.success) {
@@ -202,7 +202,7 @@ export default function AdminCalendarPage() {
       {/* Calendar Controls */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-black text-slate-900 tracking-tight">Court Calendar</h1>
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Court Calendar</h1>
           <p className="text-xs text-slate-500 mt-0.5">
             Operational schedule and real-time court occupancy grid
           </p>
@@ -210,7 +210,7 @@ export default function AdminCalendarPage() {
 
         <div className="flex flex-wrap items-center gap-3">
           {/* Day / Week View Toggle */}
-          <div className="flex items-center bg-slate-100 p-1 rounded-xl text-xs font-bold">
+          <div className="flex items-center bg-slate-100 p-1 rounded-xl text-xs font-semibold">
             <button
               onClick={() => setCalendarView("day")}
               className={cn(
@@ -463,6 +463,16 @@ export default function AdminCalendarPage() {
                           {bookingDetails.paymentMethod?.toUpperCase()}
                         </Badge>
                       </div>
+                      {bookingDetails.pass && (
+                        <div className="flex justify-between items-center">
+                          <span className="text-slate-500">Monthly Pass</span>
+                          <Link href={`/admin/passes/${bookingDetails.pass.id}`}>
+                            <Badge className="bg-purple-100 text-purple-800 hover:bg-purple-200 text-[10px] font-bold border-0 cursor-pointer">
+                              {bookingDetails.pass.passNumber}
+                            </Badge>
+                          </Link>
+                        </div>
+                      )}
                       <div className="flex justify-between items-center">
                         <span className="text-slate-500">Customer Access</span>
                         {Date.now() - new Date(bookingDetails.createdAt).getTime() > 7 * 24 * 60 * 60 * 1000 ? (

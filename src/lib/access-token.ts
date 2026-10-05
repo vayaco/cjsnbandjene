@@ -95,7 +95,11 @@ export async function validateAccessToken(
     include: {
       booking: {
         include: {
-          venue: true,
+          venue: {
+            include: {
+              business: true,
+            },
+          },
           resource: true,
           customer: true,
           payments: {

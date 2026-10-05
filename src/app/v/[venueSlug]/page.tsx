@@ -228,7 +228,7 @@ export default function VenueBookingPage({
   }
 
   return (
-    <main className="max-w-3xl mx-auto px-4 py-4 sm:py-6 space-y-6">
+    <main className="max-w-3xl mx-auto px-3.5 sm:px-4 py-3.5 sm:py-6 space-y-4 sm:space-y-6">
       <Link
         href="/"
         className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-slate-900 transition-colors"
@@ -238,10 +238,10 @@ export default function VenueBookingPage({
       </Link>
 
       {/* Venue Header Banner */}
-      <div className="bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-5 shadow-xs overflow-hidden">
+      <div className="bg-white rounded-2xl border border-slate-200/90 p-3.5 sm:p-5 shadow-xs overflow-hidden">
         {venue.imageUrl && (
           <div
-            className="relative h-52 sm:h-64 w-full rounded-2xl overflow-hidden mb-4 cursor-pointer group shadow-xs bg-slate-100"
+            className="relative h-44 sm:h-64 w-full rounded-xl sm:rounded-2xl overflow-hidden mb-3.5 sm:mb-4 cursor-pointer group shadow-xs bg-slate-100"
             onClick={() => setShowLightbox(true)}
           >
             <img
@@ -256,14 +256,14 @@ export default function VenueBookingPage({
           </div>
         )}
 
-        <div className="flex items-start justify-between gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-3">
           <div>
-            <div className="flex items-center gap-2 mb-1">
-              <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+            <div className="flex flex-wrap items-center gap-2 mb-1">
+              <h1 className="text-lg sm:text-2xl font-bold text-slate-900 tracking-tight">
                 {venue.name}
               </h1>
-              <Badge className="bg-emerald-100 text-emerald-800 font-bold border-0 text-xs">
-                Academy Code: {venue.code}
+              <Badge className="bg-emerald-100 text-emerald-800 font-semibold border-0 text-[11px] sm:text-xs">
+                Academy Code: <span className="font-mono font-bold ml-1">{venue.code}</span>
               </Badge>
             </div>
             <div className="flex items-center gap-1.5 text-xs text-slate-500">
@@ -273,7 +273,7 @@ export default function VenueBookingPage({
             {venue.phone && (
               <div className="flex items-center gap-1.5 text-xs text-slate-400 mt-1">
                 <Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                <span>Front Desk: {venue.phone}</span>
+                <span>Front Desk: <span className="font-mono tabular-nums">{venue.phone}</span></span>
               </div>
             )}
           </div>
@@ -282,37 +282,40 @@ export default function VenueBookingPage({
 
       {/* Error Message */}
       {errorMessage && (
-        <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs sm:text-sm font-medium flex items-center justify-between">
+        <div className="p-3.5 sm:p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs sm:text-sm font-medium flex items-center justify-between">
           <div className="flex items-center gap-2">
             <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
             <span>{errorMessage}</span>
           </div>
-          <button onClick={() => setErrorMessage(null)} className="text-rose-500 hover:text-rose-700">
+          <button onClick={() => setErrorMessage(null)} className="text-rose-500 hover:text-rose-700 p-1">
             <X className="w-4 h-4" />
           </button>
         </div>
       )}
 
       {/* Booking Flow Step Indicator */}
-      <div className="flex items-center justify-between px-4 py-3 bg-slate-900 text-white rounded-2xl text-xs font-bold shadow-xs">
-        <div className="flex items-center gap-2 text-emerald-400">
-          <span className="w-5 h-5 rounded-full bg-emerald-500 text-slate-950 flex items-center justify-center text-[11px] font-black">1</span>
-          <span>Choose Court & Time</span>
+      <div className="flex items-center justify-between px-3 sm:px-4 py-2.5 sm:py-3 bg-slate-900 text-white rounded-2xl text-[11px] sm:text-xs font-semibold shadow-xs">
+        <div className="flex items-center gap-1.5 sm:gap-2 text-emerald-400">
+          <span className="w-5 h-5 rounded-full bg-emerald-500 text-slate-950 flex items-center justify-center text-[10px] sm:text-[11px] font-bold font-mono shrink-0">1</span>
+          <span className="hidden sm:inline">Choose Court & Time</span>
+          <span className="sm:hidden">Select Slot</span>
         </div>
         <span className="text-slate-600">→</span>
-        <div className="flex items-center gap-2 text-slate-400">
-          <span className="w-5 h-5 rounded-full bg-slate-800 text-slate-400 flex items-center justify-center text-[11px] font-black">2</span>
-          <span>Player Details</span>
+        <div className="flex items-center gap-1.5 sm:gap-2 text-slate-400">
+          <span className="w-5 h-5 rounded-full bg-slate-800 text-slate-400 flex items-center justify-center text-[10px] sm:text-[11px] font-bold font-mono shrink-0">2</span>
+          <span className="hidden sm:inline">Player Details</span>
+          <span className="sm:hidden">Details</span>
         </div>
         <span className="text-slate-600">→</span>
-        <div className="flex items-center gap-2 text-slate-400">
-          <span className="w-5 h-5 rounded-full bg-slate-800 text-slate-400 flex items-center justify-center text-[11px] font-black">3</span>
-          <span>Review & Pay</span>
+        <div className="flex items-center gap-1.5 sm:gap-2 text-slate-400">
+          <span className="w-5 h-5 rounded-full bg-slate-800 text-slate-400 flex items-center justify-center text-[10px] sm:text-[11px] font-bold font-mono shrink-0">3</span>
+          <span className="hidden sm:inline">Review & Pay</span>
+          <span className="sm:hidden">Payment</span>
         </div>
       </div>
 
       {/* Choose a Date */}
-      <div className="bg-white rounded-2xl border border-slate-200/80 p-3.5 sm:p-4 shadow-xs space-y-2">
+      <div className="bg-white rounded-2xl border border-slate-200/80 p-3 sm:p-4 shadow-xs space-y-2">
         <span className="text-xs font-bold uppercase tracking-wider text-slate-500 block px-1">
           Choose a Date
         </span>
@@ -320,12 +323,12 @@ export default function VenueBookingPage({
       </div>
 
       {/* Choose a Court & Time */}
-      <div className="bg-white rounded-2xl border border-slate-200/80 p-4 sm:p-5 shadow-xs space-y-3">
+      <div className="bg-white rounded-2xl border border-slate-200/80 p-3.5 sm:p-5 shadow-xs space-y-3">
         <div className="flex items-center justify-between px-1">
           <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
             Choose a Court and Time Slot
           </span>
-          <span className="text-xs text-slate-400 font-medium">
+          <span className="hidden sm:inline-block text-xs text-slate-400 font-medium">
             Standard 60-Minute Slots
           </span>
         </div>
@@ -374,24 +377,24 @@ export default function VenueBookingPage({
 
       {/* Step 4: Customer Details Modal */}
       {showDetailsModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in">
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 animate-in zoom-in-95">
-            <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in">
+          <div className="bg-white rounded-t-[28px] sm:rounded-3xl max-w-md w-full p-5 sm:p-6 shadow-2xl border border-slate-200 animate-in slide-in-from-bottom sm:zoom-in-95 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-3.5 border-b border-slate-100">
               <div>
-                <h3 className="text-lg font-black text-slate-900">Your Contact Details</h3>
+                <h3 className="text-base sm:text-lg font-bold text-slate-900">Your Contact Details</h3>
                 <p className="text-xs text-slate-500 mt-0.5">Booking confirmation will be sent here</p>
               </div>
               <button
                 onClick={() => setShowDetailsModal(false)}
-                className="p-1.5 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-700"
+                className="p-2 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-700 tap-target"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <form onSubmit={handleProceedToPayment} className="mt-5 space-y-4">
+            <form onSubmit={handleProceedToPayment} className="mt-4 sm:mt-5 space-y-4">
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">
                   Full Name *
                 </label>
                 <Input
@@ -400,17 +403,17 @@ export default function VenueBookingPage({
                   placeholder="e.g. Vikram Malhotra"
                   value={customerName}
                   onChange={(e) => setCustomerName(e.target.value)}
-                  className="text-base"
+                  className="text-base h-11"
                   autoFocus
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">
                   Mobile Number (10 Digits) *
                 </label>
                 <div className="relative">
-                  <span className="absolute left-3.5 top-2.5 text-sm font-bold text-slate-500">
+                  <span className="absolute left-3.5 top-2.5 text-sm font-mono font-medium text-slate-500">
                     +91
                   </span>
                   <Input
@@ -420,7 +423,7 @@ export default function VenueBookingPage({
                     placeholder="98200 11223"
                     value={customerPhone}
                     onChange={(e) => setCustomerPhone(e.target.value)}
-                    className="pl-13 text-base font-medium tracking-wide"
+                    className="pl-13 text-base font-medium tracking-wide h-11"
                   />
                 </div>
                 <span className="text-[11px] text-slate-400 mt-1 block">
@@ -445,6 +448,7 @@ export default function VenueBookingPage({
                   placeholder="name@example.com"
                   value={customerEmail}
                   onChange={(e) => setCustomerEmail(e.target.value)}
+                  className="text-base h-11"
                 />
               </div>
 
@@ -455,18 +459,18 @@ export default function VenueBookingPage({
                 </span>
               </div>
 
-              <div className="pt-3 flex items-center gap-3">
+              <div className="pt-2 sm:pt-3 flex items-center gap-3">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => setShowDetailsModal(false)}
-                  className="flex-1"
+                  className="flex-1 h-11 font-semibold"
                 >
                   Back
                 </Button>
                 <Button
                   type="submit"
-                  className="flex-1 bg-emerald-600 hover:bg-emerald-700 font-bold"
+                  className="flex-1 h-11 font-bold"
                 >
                   Proceed to Payment
                 </Button>

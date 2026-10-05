@@ -17,40 +17,6 @@ import {
   Lock,
 } from "lucide-react";
 
-function BarcodeGraphic({ code }: { code: string }) {
-  const bars = [
-    3, 1, 2, 2, 1, 3, 2, 1, 1, 2, 3, 1, 2, 1, 3, 2, 1, 2, 2, 3,
-    1, 2, 1, 3, 2, 1, 3, 1, 2, 2, 1, 2, 3, 1, 2, 1, 1, 3, 2, 1,
-    2, 3, 1, 2, 1, 3, 2, 1, 2, 2, 3, 1, 2, 1, 3, 2, 1, 3, 1, 2,
-  ];
-
-  let currentX = 2;
-  return (
-    <svg
-      viewBox="0 0 240 60"
-      className="w-full max-w-[270px] h-12 select-none"
-      preserveAspectRatio="none"
-    >
-      {bars.map((width, idx) => {
-        const x = currentX;
-        currentX += width + (idx % 2 === 0 ? 2 : 1.5);
-        if (idx % 2 === 0) {
-          return (
-            <rect
-              key={idx}
-              x={x}
-              y="0"
-              width={width}
-              height="60"
-              className="fill-slate-900"
-            />
-          );
-        }
-        return null;
-      })}
-    </svg>
-  );
-}
 
 export default function BookingConfirmationPage({
   params,
@@ -157,12 +123,15 @@ export default function BookingConfirmationPage({
     );
   }
 
+  const brandName = booking.venue?.business?.name || "Badminton Academy";
+  const brandLogoUrl = booking.venue?.business?.logoUrl;
+
   const invoiceUrl = isAdmin
     ? `/api/v1/admin/bookings/${booking.id}/invoice`
     : `/invoice/${bookingId}`;
 
   const shareText = encodeURIComponent(
-    `*Badminton Academy Match Pass*\n` +
+    `*${brandName} Match Pass*\n` +
     `Venue: ${booking.venue?.name}\n` +
     `Date: ${booking.dateStr}\n` +
     `Time: ${formatTimeRange(booking.startTimeStr, booking.endTimeStr)}\n` +
@@ -173,22 +142,31 @@ export default function BookingConfirmationPage({
   const whatsappUrl = `https://api.whatsapp.com/send?text=${shareText}`;
 
   return (
-    <div className="min-h-screen bg-slate-100/70 py-6 px-4">
-      <div className="max-w-md mx-auto space-y-4">
+    <div className="min-h-screen bg-slate-100/70 py-4 sm:py-6 px-3 sm:px-4">
+      <div className="max-w-md mx-auto space-y-3.5 sm:space-y-4">
         {/* Top App Bar with back button, title, and download button */}
         <div className="flex items-center justify-between px-1">
           <Link href={`/v/${booking.venue?.slug || ""}`}>
-            <button className="w-11 h-11 rounded-full bg-white border border-slate-200/80 shadow-sm flex items-center justify-center text-slate-700 hover:bg-slate-50 transition-colors">
+            <button className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-white border border-slate-200/80 shadow-sm flex items-center justify-center text-slate-700 hover:bg-slate-50 transition-colors">
               <ChevronLeft className="w-5 h-5" />
             </button>
           </Link>
-          <h1 className="text-base font-bold text-slate-800 tracking-tight">Match Pass</h1>
+          <div className="flex items-center gap-2">
+            {brandLogoUrl && (
+              <img
+                src={brandLogoUrl}
+                alt={brandName}
+                className="w-5 h-5 sm:w-6 sm:h-6 rounded-lg object-contain bg-white border border-slate-200 p-0.5 shadow-xs"
+              />
+            )}
+            <h1 className="text-sm sm:text-base font-bold text-slate-800 tracking-tight">Tax Invoice & Pass</h1>
+          </div>
           <a href={invoiceUrl} download>
             <button
-              className="w-11 h-11 rounded-full bg-white border border-slate-200/80 shadow-sm flex items-center justify-center text-slate-700 hover:bg-slate-50 transition-colors"
+              className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-white border border-slate-200/80 shadow-sm flex items-center justify-center text-slate-700 hover:bg-slate-50 transition-colors"
               title="Download Official Tax Invoice PDF"
             >
-              <Download className="w-5 h-5" />
+              <Download className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
           </a>
         </div>
@@ -203,122 +181,179 @@ export default function BookingConfirmationPage({
           </div>
         )}
 
-        {/* Ticket Card Container */}
-        <div className="bg-white rounded-[32px] shadow-xl shadow-slate-200/70 border border-slate-200/60 overflow-hidden relative">
-          {/* Top Venue Hero Image Banner */}
-          <div className="p-4 pb-1">
-            <div className="relative h-56 w-full rounded-[24px] overflow-hidden bg-slate-950 shadow-inner">
-              <img
-                src={
-                  booking.venue?.imageUrl ||
-                  "https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?auto=format&fit=crop&w=1200&q=80"
-                }
-                alt={booking.venue?.name || "Badminton Venue"}
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/35 to-transparent flex flex-col justify-end p-5">
-                <span className="text-[10px] uppercase tracking-widest text-emerald-400 font-extrabold block">
-                  Badminton Academy
-                </span>
-                <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight leading-tight mt-0.5 drop-shadow">
-                  {booking.venue?.name}
+        {/* Ticket Card Container with Physical Ticket Notches */}
+        <div className="bg-white rounded-[28px] sm:rounded-[32px] shadow-xl shadow-slate-200/70 border border-slate-200/60 overflow-hidden relative">
+          {/* Top Venue Ticket Stub */}
+          <div className="p-3.5 sm:p-4 pb-1">
+            {booking.venue?.imageUrl ? (
+              <div className="relative h-44 sm:h-52 w-full rounded-[20px] sm:rounded-[24px] overflow-hidden bg-slate-950 shadow-inner">
+                <img
+                  src={booking.venue.imageUrl}
+                  alt={booking.venue.name}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/35 to-transparent flex flex-col justify-end p-4 sm:p-5">
+                  <div className="flex items-center gap-1.5 mb-0.5">
+                    {brandLogoUrl && (
+                      <img
+                        src={brandLogoUrl}
+                        alt={brandName}
+                        className="w-4 h-4 rounded-sm object-contain bg-white/90 p-0.5"
+                      />
+                    )}
+                    <span className="text-[10px] uppercase tracking-widest text-emerald-400 font-bold block">
+                      {brandName}
+                    </span>
+                  </div>
+                  <h2 className="text-lg sm:text-2xl font-bold text-white tracking-tight leading-tight mt-0.5 drop-shadow">
+                    {booking.venue.name}
+                  </h2>
+                  <p className="text-xs text-slate-300 mt-0.5">
+                    {booking.venue.address}, {booking.venue.city}
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="h-36 sm:h-44 w-full rounded-[20px] sm:rounded-[24px] bg-slate-50 border border-dashed border-slate-200 flex flex-col items-center justify-center p-5 sm:p-6 text-center select-none">
+                <div className="flex items-center gap-1.5 mb-1">
+                  {brandLogoUrl && (
+                    <img
+                      src={brandLogoUrl}
+                      alt={brandName}
+                      className="w-5 h-5 rounded-md object-contain bg-white border border-slate-200 p-0.5"
+                    />
+                  )}
+                  <span className="text-[10px] sm:text-[11px] uppercase tracking-wider text-slate-500 font-bold block">
+                    {brandName}
+                  </span>
+                </div>
+                <h2 className="text-lg sm:text-2xl font-bold text-slate-800 tracking-tight mt-0.5">
+                  {booking.venue?.name || "Venue"}
                 </h2>
+                {booking.venue?.city && (
+                  <span className="text-xs text-slate-400 mt-0.5 block">
+                    {booking.venue.city}
+                  </span>
+                )}
               </div>
-            </div>
+            )}
           </div>
 
-          {/* Perforated Divider #1 with Real Circular Notches */}
+          {/* Perforated Divider with Circular Notches */}
           <div className="relative py-2.5 flex items-center">
             <div className="absolute -left-3.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-slate-100/90 shadow-inner border-r border-slate-200/60" />
             <div className="w-full border-b-2 border-dashed border-slate-200 mx-5" />
             <div className="absolute -right-3.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-slate-100/90 shadow-inner border-l border-slate-200/60" />
           </div>
 
-          {/* Middle Match Details Section */}
-          <div className="px-6 py-2 space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="px-3 py-1 rounded-full bg-sky-50 text-sky-700 text-xs font-bold tracking-wide">
-                Court: {booking.resource?.name}
-              </span>
-              <div
-                className="w-8 h-8 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600"
-                title="Reservation Confirmed"
-              >
-                <CheckCircle className="w-4 h-4 stroke-[2.5]" />
+          {/* Ticket Body / Invoice Details */}
+          <div className="px-4 sm:px-6 pt-1 pb-5 sm:pb-6 space-y-4 sm:space-y-5">
+            {/* Total Paid & Status Banner */}
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 gap-2">
+              <div>
+                <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 block">
+                  Total Paid (Tax Invoice)
+                </span>
+                <span className="text-xl sm:text-2xl font-bold text-emerald-700 tracking-tight tabular-nums">
+                  {formatCurrency(booking.total)}
+                </span>
+              </div>
+              <div className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200/80 text-emerald-700 text-[11px] sm:text-xs font-bold shadow-xs shrink-0">
+                <CheckCircle className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                <span>Paid & Confirmed</span>
               </div>
             </div>
 
-            <div>
-              <h3 className="text-lg font-black text-slate-900 tracking-tight leading-tight">
-                {booking.venue?.name}
-              </h3>
-              <p className="text-xs text-slate-500 mt-0.5">
-                {booking.venue?.address}, {booking.venue?.city}
-              </p>
-            </div>
+          {/* Itemized Match Details */}
+          <div className="grid grid-cols-2 gap-y-4 gap-x-4 text-xs">
+              <div>
+                <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">
+                  Invoice / Booking ID
+                </span>
+                <span className="text-sm font-bold font-mono text-emerald-700 block mt-0.5">
+                  #{booking.bookingNumber}
+                </span>
+              </div>
 
-            <div className="border-t border-slate-100 pt-3">
-              <div className="grid grid-cols-2 gap-y-4 gap-x-3 text-xs">
-                <div>
-                  <span className="text-[11px] text-slate-400 font-medium block">Date</span>
-                  <span className="text-sm font-bold text-slate-900 block mt-0.5">
-                    {booking.dateStr}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-[11px] text-slate-400 font-medium block">Time</span>
-                  <span className="text-sm font-bold text-slate-900 block mt-0.5">
-                    {formatTimeRange(booking.startTimeStr, booking.endTimeStr)}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-[11px] text-slate-400 font-medium block">Location</span>
-                  <span className="text-sm font-bold text-slate-900 block mt-0.5">
-                    {booking.venue?.city || "Mumbai"}, India
-                  </span>
-                </div>
-                <div>
-                  <span className="text-[11px] text-slate-400 font-medium block">Seats</span>
-                  <span className="text-sm font-bold text-slate-900 block mt-0.5">
-                    {booking.resource?.name} ({booking.resource?.resourceType || "Court"})
-                  </span>
-                </div>
-                <div>
-                  <span className="text-[11px] text-slate-400 font-medium block">Ticket holder</span>
-                  <span className="text-sm font-bold text-slate-900 block mt-0.5 truncate">
-                    {booking.customer?.name}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-[11px] text-slate-400 font-medium block">Issued to</span>
-                  <span className="text-sm font-bold font-mono text-emerald-600 block mt-0.5">
-                    ID: {booking.bookingNumber}
-                  </span>
-                </div>
+              <div>
+                <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">
+                  Assigned Court
+                </span>
+                <span className="text-sm font-semibold text-slate-900 block mt-0.5">
+                  {booking.resource?.name} ({booking.resource?.resourceType || "Court"})
+                </span>
+              </div>
+
+              <div>
+                <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">
+                  Slot Date
+                </span>
+                <span className="text-sm font-semibold text-slate-900 block mt-0.5 tabular-nums">
+                  {booking.dateStr}
+                </span>
+              </div>
+
+              <div>
+                <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">
+                  Slot Time
+                </span>
+                <span className="text-sm font-semibold font-mono tabular-nums text-slate-900 block mt-0.5">
+                  {formatTimeRange(booking.startTimeStr, booking.endTimeStr)}
+                </span>
+              </div>
+
+              <div>
+                <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">
+                  Player Name
+                </span>
+                <span className="text-sm font-semibold text-slate-900 block mt-0.5 truncate">
+                  {booking.customer?.name}
+                </span>
+              </div>
+
+              <div>
+                <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">
+                  Contact Phone
+                </span>
+                <span className="text-sm font-semibold font-mono text-slate-900 block mt-0.5">
+                  {booking.customer?.phone}
+                </span>
               </div>
             </div>
-          </div>
 
-          {/* Perforated Divider #2 with Real Circular Notches */}
-          <div className="relative py-2.5 flex items-center">
-            <div className="absolute -left-3.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-slate-100/90 shadow-inner border-r border-slate-200/60" />
-            <div className="w-full border-b-2 border-dashed border-slate-200 mx-5" />
-            <div className="absolute -right-3.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-slate-100/90 shadow-inner border-l border-slate-200/60" />
-          </div>
+            {/* Financial Ledger Section */}
+            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/70 space-y-2 text-xs">
+              <div className="flex items-center justify-between text-slate-600">
+                <span>Court Slot Rental (60 Mins)</span>
+                <span className="font-semibold text-slate-800">{formatCurrency(booking.subtotal || booking.total)}</span>
+              </div>
+              <div className="flex items-center justify-between text-slate-600">
+                <span>Taxes & GST (0%)</span>
+                <span className="font-semibold text-slate-800">{formatCurrency(booking.tax || 0)}</span>
+              </div>
+              <div className="pt-2 border-t border-slate-200/80 flex items-center justify-between font-bold text-slate-900">
+                <span>Net Total Settled</span>
+                <span className="text-sm text-emerald-700">{formatCurrency(booking.total)}</span>
+              </div>
+              <div className="pt-1 text-[11px] text-slate-400 flex items-center justify-between">
+                <span>Payment Mode: {booking.paymentMethod || "Online / Electronic Transfer"}</span>
+                <span className="text-emerald-600 font-semibold">Zero Balance Due</span>
+              </div>
+            </div>
 
-          {/* Bottom Barcode Section */}
-          <div className="px-6 pt-1 pb-6 flex flex-col items-center justify-center space-y-1.5">
-            <BarcodeGraphic code={booking.bookingNumber} />
-            <span className="font-mono text-xs tracking-widest text-slate-500 font-semibold">
-              {booking.bookingNumber}
-            </span>
+            {/* Essential Venue Guidelines */}
+            <div className="text-[11px] text-slate-500 space-y-1 bg-amber-50/50 p-3 rounded-xl border border-amber-200/60">
+              <p className="font-semibold text-amber-900">Important Venue Notes:</p>
+              <p>• Non-marking badminton shoes are mandatory on all synthetic courts.</p>
+              <p>• Please present this electronic invoice or match pass at reception.</p>
+            </div>
           </div>
         </div>
 
         {/* Action Buttons */}
-        <div className="space-y-2.5 pt-1">
+        <div className="space-y-2.5 sm:space-y-3 pt-1 sm:pt-2">
           <a href={invoiceUrl} download className="block w-full">
-            <Button className="w-full h-12 rounded-2xl font-bold text-xs sm:text-sm bg-slate-950 hover:bg-slate-800 text-white shadow-sm gap-2">
+            <Button variant="dark" className="w-full h-12 sm:h-13 font-bold text-xs sm:text-sm gap-2">
               <Download className="w-4 h-4" />
               <span>Download Official Tax Invoice (PDF)</span>
             </Button>
@@ -326,8 +361,8 @@ export default function BookingConfirmationPage({
 
           <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="block w-full">
             <Button
-              variant="outline"
-              className="w-full h-12 rounded-2xl font-bold text-xs sm:text-sm text-emerald-700 bg-emerald-50/50 hover:bg-emerald-100/60 border-emerald-200 gap-2"
+              variant="subtle"
+              className="w-full h-11 sm:h-12 font-bold text-xs sm:text-sm gap-2"
             >
               <Share2 className="w-4 h-4 text-emerald-600" />
               <span>Share Pass on WhatsApp</span>
@@ -343,7 +378,7 @@ export default function BookingConfirmationPage({
             >
               <Button
                 variant="outline"
-                className="w-full h-11 rounded-2xl font-semibold text-xs text-slate-700 border-slate-200 gap-2"
+                className="w-full h-11 sm:h-12 font-semibold text-xs sm:text-sm text-slate-700 gap-2"
               >
                 <Navigation className="w-4 h-4 text-emerald-600" />
                 <span>Get Venue Directions</span>
@@ -353,11 +388,11 @@ export default function BookingConfirmationPage({
 
           <Link href={`/v/${booking.venue?.slug || ""}`} className="block w-full">
             <Button
-              variant="ghost"
-              className="w-full h-11 rounded-2xl font-semibold text-xs text-slate-600 hover:text-slate-900 gap-1.5"
+              variant="outline"
+              className="w-full h-11 sm:h-12 font-semibold text-xs sm:text-sm text-slate-700 gap-1.5"
             >
               <span>Book Another Slot</span>
-              <ArrowRight className="w-3.5 h-3.5" />
+              <ArrowRight className="w-4 h-4" />
             </Button>
           </Link>
         </div>

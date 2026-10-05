@@ -50,7 +50,19 @@ async function main() {
     },
   })
 
-  console.log('Seeding finished. Added Business and Super Admin.')
+  // 3. Create Standard Admin User
+  console.log('Creating admin user...')
+  await prisma.businessUser.create({
+    data: {
+      businessId: business.id,
+      name: 'Operations Admin',
+      email: 'manager@smashzone.in',
+      passwordHash: passwordHash,
+      role: 'admin',
+    },
+  })
+
+  console.log('Seeding finished. Added Business, Super Admin, and Admin.')
 }
 
 main()

@@ -37,7 +37,7 @@ export function SlotGrid({
           </span>
         </div>
 
-        <div className="flex gap-2 overflow-x-auto pb-1.5 scrollbar-none">
+        <div className="flex gap-2 overflow-x-auto pb-1.5 scrollbar-none touch-pan-x">
           {resources.map((res) => {
             const isSelected = (activeResource?.resourceId || "") === res.resourceId;
             const availableCount = res.slots.filter((s) => s.status === "available").length;
@@ -47,7 +47,7 @@ export function SlotGrid({
                 key={res.resourceId}
                 onClick={() => onSelectResource(res.resourceId)}
                 className={cn(
-                  "flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-bold whitespace-nowrap transition-all duration-150 select-none",
+                  "flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl border text-xs sm:text-sm font-bold whitespace-nowrap transition-all duration-150 select-none shrink-0",
                   isSelected
                     ? "bg-slate-900 border-slate-900 text-white shadow-sm"
                     : "bg-white border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50"
@@ -56,7 +56,7 @@ export function SlotGrid({
                 <span>{res.resourceName}</span>
                 <span
                   className={cn(
-                    "text-xs px-2 py-0.5 rounded-full font-medium",
+                    "text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded-full font-medium",
                     isSelected
                       ? "bg-emerald-500 text-white"
                       : "bg-emerald-50 text-emerald-700"
@@ -71,29 +71,29 @@ export function SlotGrid({
       </div>
 
       {/* Legend */}
-      <div className="flex flex-wrap items-center gap-4 py-1 px-2 text-xs font-medium text-slate-500 bg-white/70 border border-slate-200/60 rounded-xl">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 py-1.5 px-2.5 text-[11px] sm:text-xs font-medium text-slate-500 bg-white/70 border border-slate-200/60 rounded-xl">
         <div className="flex items-center gap-1.5">
-          <span className="w-3 h-3 rounded-full bg-emerald-500 border border-emerald-600" />
+          <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 border border-emerald-600 shrink-0" />
           <span>Available</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="w-3 h-3 rounded-full bg-slate-900" />
+          <span className="w-2.5 h-2.5 rounded-full bg-slate-900 shrink-0" />
           <span>Selected</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="w-3 h-3 rounded-full bg-slate-200 border border-slate-300" />
+          <span className="w-2.5 h-2.5 rounded-full bg-slate-200 border border-slate-300 shrink-0" />
           <span>Booked</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="w-3 h-3 rounded-full bg-amber-100 border border-amber-300" />
-          <span>Held (Checkout)</span>
+          <span className="w-2.5 h-2.5 rounded-full bg-amber-100 border border-amber-300 shrink-0" />
+          <span>Held</span>
         </div>
       </div>
 
       {/* Slots List for Selected Court */}
       {activeResource ? (
         <div className="space-y-3">
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-2.5">
             {activeResource.slots.map((slot) => {
               const isSelected = selectedSlot?.slotId === slot.slotId;
               const isAvailable = slot.status === "available";
@@ -108,7 +108,7 @@ export function SlotGrid({
                   disabled={!isAvailable}
                   onClick={() => onSelectSlot(slot)}
                   className={cn(
-                    "relative flex flex-col p-3 rounded-2xl border text-left transition-all duration-150 select-none tap-target",
+                    "relative flex flex-col p-2.5 sm:p-3 rounded-xl sm:rounded-2xl border text-left transition-all duration-150 select-none tap-target",
                     isSelected
                       ? "bg-slate-900 border-slate-900 text-white shadow-lg ring-2 ring-emerald-500 scale-[1.02]"
                       : isAvailable
@@ -125,7 +125,7 @@ export function SlotGrid({
                   <div className="flex items-center justify-between w-full">
                     <span
                       className={cn(
-                        "text-xs font-bold",
+                        "text-xs font-semibold font-mono tabular-nums",
                         isSelected ? "text-slate-200" : isAvailable ? "text-slate-900" : "text-slate-400"
                       )}
                     >
@@ -134,7 +134,7 @@ export function SlotGrid({
                     {isSelected ? (
                       <CheckCircle2 className="w-4 h-4 text-emerald-400" />
                     ) : isAvailable ? (
-                      <span className="text-[10px] uppercase font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-md">
+                      <span className="text-[10px] uppercase font-semibold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-md">
                         Open
                       </span>
                     ) : isBooked ? (
@@ -146,7 +146,7 @@ export function SlotGrid({
                         Holding
                       </span>
                     ) : isBlocked && slot.blockedReason === "Court Under Maintenance" ? (
-                      <span className="text-[10px] uppercase font-bold text-slate-500 bg-slate-200 px-1.5 py-0.5 rounded-md">
+                      <span className="text-[10px] uppercase font-semibold text-slate-500 bg-slate-200 px-1.5 py-0.5 rounded-md">
                         Maintenance
                       </span>
                     ) : (
@@ -159,7 +159,7 @@ export function SlotGrid({
                   <div className="mt-2 flex items-baseline justify-between w-full">
                     <span
                       className={cn(
-                        "text-sm font-extrabold tracking-tight",
+                        "text-sm font-semibold tracking-tight tabular-nums",
                         isSelected ? "text-emerald-400" : isAvailable ? "text-emerald-700" : "text-slate-400"
                       )}
                     >

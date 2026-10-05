@@ -71,14 +71,14 @@ export default function AdminBookingsPage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-black text-slate-900 tracking-tight">Bookings</h1>
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Bookings</h1>
           <p className="text-xs text-slate-500 mt-0.5">
             Manage, filter, and inspect all customer reservations
           </p>
         </div>
 
         <Link href="/admin/bookings/new">
-          <Button className="bg-emerald-600 hover:bg-emerald-700 font-bold gap-1.5 text-xs">
+          <Button className="bg-emerald-600 hover:bg-emerald-700 font-semibold gap-1.5 text-xs">
             <PlusCircle className="w-4 h-4" />
             <span>Create Manual Booking</span>
           </Button>
@@ -176,7 +176,14 @@ export default function AdminBookingsPage() {
                   {bookings.map((b) => (
                     <tr key={b.id} className="hover:bg-slate-50/70 transition-colors">
                       <td className="p-4 pl-6 font-mono font-bold text-slate-900">
-                        {b.bookingNumber}
+                        <div>{b.bookingNumber}</div>
+                        {b.pass && (
+                          <Link href={`/admin/passes/${b.pass.id}`}>
+                            <Badge className="bg-purple-100 text-purple-800 hover:bg-purple-200 text-[9px] font-bold border-0 mt-1 cursor-pointer">
+                              Pass: {b.pass.passNumber}
+                            </Badge>
+                          </Link>
+                        )}
                       </td>
                       <td className="p-4">
                         <div className="font-bold text-slate-900">{b.customer?.name}</div>
@@ -187,12 +194,12 @@ export default function AdminBookingsPage() {
                         <span className="text-slate-400 text-[11px]">{b.resource?.name}</span>
                       </td>
                       <td className="p-4">
-                        <div className="font-bold text-slate-800">{b.dateStr}</div>
-                        <span className="text-slate-500 text-[11px]">
+                        <div className="font-semibold tabular-nums text-slate-800">{b.dateStr}</div>
+                        <span className="text-slate-500 font-mono tabular-nums text-[11px]">
                           {formatTimeRange(b.startTimeStr, b.endTimeStr)}
                         </span>
                       </td>
-                      <td className="p-4 font-black text-slate-900">
+                      <td className="p-4 font-bold tabular-nums text-slate-900">
                         {formatCurrency(b.total)}
                       </td>
                       <td className="p-4">
@@ -200,8 +207,8 @@ export default function AdminBookingsPage() {
                           <Badge
                             className={
                               b.status === "confirmed"
-                                ? "bg-emerald-100 text-emerald-800 font-bold text-[10px]"
-                                : "bg-rose-100 text-rose-800 font-bold text-[10px]"
+                                ? "bg-emerald-100 text-emerald-800 font-semibold uppercase tracking-wider text-[10px]"
+                                : "bg-rose-100 text-rose-800 font-semibold uppercase tracking-wider text-[10px]"
                             }
                           >
                             {b.status}
