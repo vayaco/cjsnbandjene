@@ -15,9 +15,17 @@ export async function GET(request: NextRequest) {
     // Build base filter scoped by businessId
     const businessId = user.businessId;
 
-    // Today's date string e.g. "2026-09-15"
-    const today = new Date();
-    const dateStrToday = today.toISOString().split("T")[0];
+    // Current local time in Indian Standard Time (IST)
+    const now = new Date();
+    const dateStrToday = new Intl.DateTimeFormat("en-CA", {
+      timeZone: "Asia/Kolkata",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).format(now);
+
+    const startOfToday = new Date(`${dateStrToday}T00:00:00+05:30`);
+    const endOfToday = new Date(`${dateStrToday}T23:59:59.999+05:30`);
 
     // Venue filter logic (respecting venue manager restrictions)
     let effectiveVenueId = venueFilter;
@@ -39,7 +47,7 @@ export async function GET(request: NextRequest) {
       orderBy: { name: "asc" },
     });
 
-    // 2. Fetch all venues and resources count to compute capacity
+    // 2. Fetch all active resources count to compute capacity
     const allResources = await db.resource.findMany({
       where: {
         businessId,
@@ -52,49 +60,77 @@ export async function GET(request: NextRequest) {
     const hoursOpen = 17; // 06:00 to 23:00
     const totalPossibleSlotsToday = allResources.length * hoursOpen;
 
-    // 3. Bookings Today
-    const todayBookings = await db.booking.findMany({
+    // 3. Bookings and Revenue generated Today (includes bookings created today or scheduled for today)
+    const confirmedTodayBookings = await db.booking.findMany({
+      where: {
+        businessId,
+        status: "confirmed",
+        OR: [
+          { createdAt: { gte: startOfToday, lte: endOfToday } },
+          { dateStr: dateStrToday },
+        ],
+        ...bookingVenueWhere,
+      },
+      select: { id: true, total: true },
+    });
+
+    const revenueToday = confirmedTodayBookings.reduce((sum, b) => sum + b.total, 0);
+    const bookingsTodayCount = confirmedTodayBookings.length;
+
+    // Court occupancy for slots playing today
+    const scheduledForTodayCount = await db.booking.count({
       where: {
         businessId,
         dateStr: dateStrToday,
+        status: "confirmed",
         ...bookingVenueWhere,
       },
-      include: {
-        resource: { select: { name: true } },
-        venue: { select: { name: true } },
-        customer: { select: { name: true, phone: true } },
-      },
-      orderBy: { startTimeStr: "asc" },
     });
 
-    const confirmedToday = todayBookings.filter((b) => b.status === "confirmed");
-    const cancelledToday = todayBookings.filter((b) => b.status === "cancelled");
-
-    const revenueToday = confirmedToday.reduce((sum, b) => sum + b.total, 0);
-    const bookingsTodayCount = confirmedToday.length;
-
     const occupancyRate = totalPossibleSlotsToday > 0
-      ? Math.round((bookingsTodayCount / totalPossibleSlotsToday) * 100)
+      ? Math.round((scheduledForTodayCount / totalPossibleSlotsToday) * 100)
       : 0;
 
-    const availableSlotsToday = Math.max(0, totalPossibleSlotsToday - bookingsTodayCount);
+    const availableSlotsToday = Math.max(0, totalPossibleSlotsToday - scheduledForTodayCount);
 
-    // 4. Past 7-day trend
+    // Cancellations today
+    const cancellationsTodayCount = await db.booking.count({
+      where: {
+        businessId,
+        status: "cancelled",
+        OR: [
+          { cancelledAt: { gte: startOfToday, lte: endOfToday } },
+          { dateStr: dateStrToday },
+        ],
+        ...bookingVenueWhere,
+      },
+    });
+
+    // 4. Past 7-day revenue trend
     const trendDays: { date: string; label: string; revenue: number; bookings: number }[] = [];
     for (let i = 6; i >= 0; i--) {
-      const d = new Date(today);
-      d.setDate(today.getDate() - i);
-      const dStr = d.toISOString().split("T")[0];
-      const dayLabel = d.toLocaleDateString("en-US", { weekday: "short" });
+      const d = new Date(now.getTime() - i * 86400000);
+      const dStr = new Intl.DateTimeFormat("en-CA", {
+        timeZone: "Asia/Kolkata",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      }).format(d);
+      const dayLabel = d.toLocaleDateString("en-US", { weekday: "short", timeZone: "Asia/Kolkata" });
+      const dStart = new Date(`${dStr}T00:00:00+05:30`);
+      const dEnd = new Date(`${dStr}T23:59:59.999+05:30`);
 
       const dBookings = await db.booking.findMany({
         where: {
           businessId,
-          dateStr: dStr,
           status: "confirmed",
+          OR: [
+            { createdAt: { gte: dStart, lte: dEnd } },
+            { dateStr: dStr },
+          ],
           ...bookingVenueWhere,
         },
-        select: { total: true },
+        select: { id: true, total: true },
       });
 
       const dayRevenue = dBookings.reduce((sum, b) => sum + b.total, 0);
@@ -148,7 +184,7 @@ export async function GET(request: NextRequest) {
           bookingsToday: bookingsTodayCount,
           occupancyRate,
           availableSlotsToday,
-          cancellationsToday: cancelledToday.length,
+          cancellationsToday: cancellationsTodayCount,
           pendingPaymentsCount,
           upcomingBookingsCount,
         },

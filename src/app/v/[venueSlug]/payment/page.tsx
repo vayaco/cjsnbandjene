@@ -158,18 +158,18 @@ export default function PaymentPage({
   if (!checkoutData) {
     return (
       <div className="min-h-[50vh] flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#79FE0C]" />
       </div>
     );
   }
 
   return (
-    <main className="max-w-2xl mx-auto px-3.5 sm:px-4 py-4 sm:py-8 space-y-4 sm:space-y-6">
+    <main className="max-w-2xl mx-auto px-3.5 sm:px-4 py-4 sm:py-8 space-y-4 sm:space-y-6 text-white">
       {/* Contextual Back Navigation */}
       <div className="flex items-center justify-between gap-2">
         <Link
           href={`/v/${venueSlug}`}
-          className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:text-slate-900 transition-colors shrink-0"
+          className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-400 hover:text-white transition-colors shrink-0"
         >
           <ArrowLeft className="w-4 h-4" />
           <span className="hidden sm:inline">Change Court or Time</span>
@@ -177,8 +177,8 @@ export default function PaymentPage({
         </Link>
 
         {secondsRemaining !== null && !isHoldExpired && (
-          <div className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-[11px] sm:text-xs font-bold shrink-0">
-            <Timer className="w-3.5 h-3.5 text-amber-600 animate-pulse shrink-0" />
+          <div className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-full bg-amber-950/60 border border-amber-800/80 text-amber-300 text-[11px] sm:text-xs font-bold shrink-0">
+            <Timer className="w-3.5 h-3.5 text-amber-400 animate-pulse shrink-0" />
             <span>
               <span className="hidden sm:inline">Slot reserved for </span>
               <span className="sm:hidden">Hold: </span>
@@ -190,25 +190,25 @@ export default function PaymentPage({
 
       {/* Header */}
       <div className="text-left">
-        <h1 className="text-xl sm:text-3xl font-bold text-slate-900 tracking-tight">
+        <h1 className="text-xl sm:text-3xl font-bold text-white tracking-tight">
           Review and Confirm
         </h1>
-        <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+        <p className="text-xs sm:text-sm text-slate-400 mt-0.5">
           Final step to reserve your court time at {checkoutData.venueName}
         </p>
       </div>
 
       {/* Hold Expired Notice */}
       {isHoldExpired && (
-        <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-sm space-y-3">
-          <div className="flex items-center gap-2 font-bold">
-            <AlertCircle className="w-5 h-5 text-amber-600" />
+        <div className="p-4 rounded-2xl bg-amber-950/60 border border-amber-800/80 text-amber-200 text-sm space-y-3">
+          <div className="flex items-center gap-2 font-bold text-amber-300">
+            <AlertCircle className="w-5 h-5 text-amber-400" />
             <span>Reservation Hold Expired</span>
           </div>
-          <p className="text-xs text-amber-800">
+          <p className="text-xs text-amber-200/90 leading-relaxed">
             The 10-minute reservation window has ended. To ensure fair court access, this slot has been released back into available inventory.
           </p>
-          <Button asChild className="w-full sm:w-auto bg-amber-600 hover:bg-amber-700 text-xs font-bold">
+          <Button asChild className="w-full sm:w-auto bg-amber-500 hover:bg-amber-600 text-black text-xs font-bold">
             <Link href={`/v/${venueSlug}`}>
               Select a Slot Again
             </Link>
@@ -218,8 +218,8 @@ export default function PaymentPage({
 
       {/* Error Message */}
       {errorMessage && (
-        <div className="p-3.5 sm:p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-sm flex items-start gap-3">
-          <AlertCircle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
+        <div className="p-3.5 sm:p-4 rounded-2xl bg-rose-950/60 border border-rose-800/80 text-rose-300 text-sm flex items-start gap-3">
+          <AlertCircle className="w-5 h-5 text-rose-400 shrink-0 mt-0.5" />
           <div className="flex-1 text-xs sm:text-sm">
             <span>{errorMessage}</span>
           </div>
@@ -227,79 +227,79 @@ export default function PaymentPage({
       )}
 
       {/* Booking Summary Card */}
-      <Card className="border-slate-200 shadow-sm overflow-hidden rounded-2xl sm:rounded-3xl">
-        <div className="bg-slate-900 text-white p-4 sm:p-5">
+      <Card className="border-slate-800 bg-slate-900 shadow-xl overflow-hidden rounded-2xl sm:rounded-3xl">
+        <div className="bg-slate-950 text-white p-4 sm:p-5 border-b border-slate-800">
           <div className="flex items-center justify-between gap-2">
             <div className="min-w-0">
-              <span className="text-[10px] sm:text-[11px] font-bold text-emerald-400 uppercase tracking-wider block">
+              <span className="text-[10px] sm:text-[11px] font-bold text-[#79FE0C] uppercase tracking-wider block">
                 Reserved Court
               </span>
-              <h2 className="text-base sm:text-lg font-bold mt-0.5 truncate">{checkoutData.venueName}</h2>
+              <h2 className="text-base sm:text-lg font-bold mt-0.5 truncate text-white">{checkoutData.venueName}</h2>
             </div>
-            <Badge className="bg-emerald-500/20 text-emerald-300 border-emerald-500/30 text-xs shrink-0">
+            <Badge className="bg-[#79FE0C]/15 text-[#79FE0C] border border-[#79FE0C]/30 text-xs font-bold shrink-0">
               {checkoutData.resourceName}
             </Badge>
           </div>
         </div>
 
         <CardContent className="p-4 sm:p-5 space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-4 border-b border-slate-100 text-xs">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-4 border-b border-slate-800 text-xs">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-600">
+              <div className="w-8 h-8 rounded-lg bg-slate-950 border border-slate-800 flex items-center justify-center text-[#79FE0C]">
                 <Calendar className="w-4 h-4" />
               </div>
               <div>
                 <span className="text-slate-400 block font-medium">Date</span>
-                <span className="font-bold text-slate-800">{checkoutData.dateFormatted}</span>
+                <span className="font-bold text-white">{checkoutData.dateFormatted}</span>
               </div>
             </div>
 
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-600">
+              <div className="w-8 h-8 rounded-lg bg-slate-950 border border-slate-800 flex items-center justify-center text-[#79FE0C]">
                 <Clock className="w-4 h-4" />
               </div>
               <div>
                 <span className="text-slate-400 block font-medium">Time Slot</span>
-                <span className="font-bold text-slate-800">
+                <span className="font-bold text-white">
                   {formatTimeRange(checkoutData.startTimeStr, checkoutData.endTimeStr)}
                 </span>
               </div>
             </div>
 
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-600">
+              <div className="w-8 h-8 rounded-lg bg-slate-950 border border-slate-800 flex items-center justify-center text-[#79FE0C]">
                 <User className="w-4 h-4" />
               </div>
               <div>
                 <span className="text-slate-400 block font-medium">Player Name</span>
-                <span className="font-bold text-slate-800">{checkoutData.customerName}</span>
+                <span className="font-bold text-white">{checkoutData.customerName}</span>
               </div>
             </div>
 
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-600">
+              <div className="w-8 h-8 rounded-lg bg-slate-950 border border-slate-800 flex items-center justify-center text-[#79FE0C]">
                 <Phone className="w-4 h-4" />
               </div>
               <div>
                 <span className="text-slate-400 block font-medium">Mobile Number</span>
-                <span className="font-bold text-slate-800">+91 {checkoutData.customerPhone}</span>
+                <span className="font-bold text-white">+91 {checkoutData.customerPhone}</span>
               </div>
             </div>
           </div>
 
           {/* Pricing Breakdown */}
           <div className="space-y-2 pt-1 text-xs">
-            <div className="flex items-center justify-between text-slate-600">
+            <div className="flex items-center justify-between text-slate-300">
               <span>Court Reservation (60 Minutes)</span>
-              <span className="font-semibold">{formatCurrency(checkoutData.price)}</span>
+              <span className="font-semibold text-white">{formatCurrency(checkoutData.price)}</span>
             </div>
-            <div className="flex items-center justify-between text-slate-600">
+            <div className="flex items-center justify-between text-slate-300">
               <span>Platform & Convenience Fee</span>
-              <span className="font-semibold text-emerald-600">FREE</span>
+              <span className="font-bold text-[#79FE0C]">FREE</span>
             </div>
-            <div className="flex items-center justify-between pt-3 border-t border-slate-200 text-sm">
-              <span className="font-semibold text-slate-900">Total Payable</span>
-              <span className="font-bold text-xl tabular-nums text-emerald-600">
+            <div className="flex items-center justify-between pt-3 border-t border-slate-800 text-sm">
+              <span className="font-semibold text-white">Total Payable</span>
+              <span className="font-extrabold text-2xl tabular-nums text-[#79FE0C]">
                 {formatCurrency(checkoutData.price)}
               </span>
             </div>
@@ -308,42 +308,42 @@ export default function PaymentPage({
       </Card>
 
       {/* Payment Preview Mode Banner (Development) */}
-      <div className="rounded-2xl border-2 border-dashed border-emerald-300 bg-emerald-50/70 p-4 sm:p-5 text-emerald-950 space-y-3.5 sm:space-y-4">
+      <div className="rounded-2xl border-2 border-dashed border-[#79FE0C]/40 bg-slate-950/80 p-4 sm:p-5 text-white space-y-3.5 sm:space-y-4">
         <div className="flex items-start gap-3">
-          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-sm">
-            <Sparkles className="w-4 h-4 sm:w-5 sm:h-5" />
+          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-[#79FE0C] text-black flex items-center justify-center shrink-0 shadow-sm font-bold">
+            <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-black" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="font-bold text-slate-900 text-sm sm:text-base">
+              <h3 className="font-bold text-white text-sm sm:text-base">
                 Payment Preview Mode
               </h3>
-              <Badge className="bg-emerald-600 text-white text-[10px] font-bold">
+              <Badge className="bg-[#79FE0C] text-black text-[10px] font-bold">
                 Development
               </Badge>
             </div>
-            <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+            <p className="text-xs text-slate-300 mt-1 leading-relaxed">
               Full payment gateway integration (UPI Intent, Dynamic QR, Net Banking, and Cards) is configured with plug-and-play adapters. For development testing, you can simulate outcomes below.
             </p>
           </div>
         </div>
 
         {/* Future payment methods preview */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 border-t border-emerald-200/60">
-          <div className="p-2 sm:p-2.5 rounded-xl bg-white/90 border border-emerald-100 flex items-center gap-2 text-xs text-slate-600">
-            <Smartphone className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-600 shrink-0" />
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 border-t border-slate-800">
+          <div className="p-2 sm:p-2.5 rounded-xl bg-slate-900 border border-slate-800 flex items-center gap-2 text-xs text-slate-300">
+            <Smartphone className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#79FE0C] shrink-0" />
             <span className="font-medium text-[11px] sm:text-xs">UPI / GPay</span>
           </div>
-          <div className="p-2 sm:p-2.5 rounded-xl bg-white/90 border border-emerald-100 flex items-center gap-2 text-xs text-slate-600">
-            <QrCode className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-600 shrink-0" />
+          <div className="p-2 sm:p-2.5 rounded-xl bg-slate-900 border border-slate-800 flex items-center gap-2 text-xs text-slate-300">
+            <QrCode className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#79FE0C] shrink-0" />
             <span className="font-medium text-[11px] sm:text-xs">Dynamic QR</span>
           </div>
-          <div className="p-2 sm:p-2.5 rounded-xl bg-white/90 border border-emerald-100 flex items-center gap-2 text-xs text-slate-600">
-            <CreditCard className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-600 shrink-0" />
+          <div className="p-2 sm:p-2.5 rounded-xl bg-slate-900 border border-slate-800 flex items-center gap-2 text-xs text-slate-300">
+            <CreditCard className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#79FE0C] shrink-0" />
             <span className="font-medium text-[11px] sm:text-xs">Debit / Cards</span>
           </div>
-          <div className="p-2 sm:p-2.5 rounded-xl bg-white/90 border border-emerald-100 flex items-center gap-2 text-xs text-slate-600">
-            <Building className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-600 shrink-0" />
+          <div className="p-2 sm:p-2.5 rounded-xl bg-slate-900 border border-slate-800 flex items-center gap-2 text-xs text-slate-300">
+            <Building className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#79FE0C] shrink-0" />
             <span className="font-medium text-[11px] sm:text-xs">Net Banking</span>
           </div>
         </div>
@@ -354,16 +354,16 @@ export default function PaymentPage({
             onClick={() => handleSimulatePayment("success")}
             disabled={isSubmitting || isHoldExpired}
             size="lg"
-            className="w-full sm:flex-1 h-12 sm:h-13 text-xs sm:text-sm font-bold gap-2"
+            className="w-full sm:flex-1 h-12 sm:h-13 text-xs sm:text-sm font-extrabold gap-2 bg-[#79FE0C] hover:bg-[#6de809] text-black shadow-[0_0_20px_rgba(121,254,12,0.35)] cursor-pointer"
           >
             {isSubmitting ? (
               <div className="flex items-center gap-2">
-                <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
+                <div className="animate-spin rounded-full h-4 w-4 border-2 border-black border-t-transparent" />
                 <span>Confirming Booking...</span>
               </div>
             ) : (
               <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4" />
+                <CheckCircle2 className="w-4 h-4 text-black stroke-[2.5]" />
                 <span>Simulate Successful Payment</span>
               </div>
             )}
@@ -374,15 +374,15 @@ export default function PaymentPage({
             variant="outline"
             onClick={() => handleSimulatePayment("failure")}
             disabled={isSubmitting || isHoldExpired}
-            className="w-full sm:w-auto h-11 sm:h-13 border-rose-200 text-rose-700 hover:bg-rose-50 text-xs font-bold gap-1.5"
+            className="w-full sm:w-auto h-11 sm:h-13 border-rose-900/60 bg-rose-950/30 text-rose-300 hover:bg-rose-950/70 text-xs font-bold gap-1.5 cursor-pointer"
           >
-            <XCircle className="w-4 h-4 text-rose-500" />
+            <XCircle className="w-4 h-4 text-rose-400" />
             <span>Simulate Failure</span>
           </Button>
         </div>
       </div>
 
-      <p className="text-center text-[11px] text-slate-400 flex items-center justify-center gap-1.5">
+      <p className="text-center text-[11px] text-slate-500 flex items-center justify-center gap-1.5">
         <Lock className="w-3.5 h-3.5" />
         <span>Atomic database lock active • Double bookings prevented</span>
       </p>

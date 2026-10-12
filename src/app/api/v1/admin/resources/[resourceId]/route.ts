@@ -21,18 +21,32 @@ export async function PATCH(
       return NextResponse.json({ success: false, error: "Resource not found" }, { status: 404 });
     }
 
+    if (user.role === "venue_manager" && user.venueId && user.venueId !== resource.venueId) {
+      return NextResponse.json({ success: false, error: "Unauthorized for this venue" }, { status: 403 });
+    }
+
+    const updateData: any = {};
+    if (status) updateData.status = status;
+    if (name?.trim()) updateData.name = name.trim();
+    if (defaultPrice !== undefined && defaultPrice !== null) {
+      const parsedPrice = Number(defaultPrice);
+      if (!isNaN(parsedPrice) && parsedPrice >= 0) {
+        updateData.defaultPrice = parsedPrice;
+      }
+    }
+
     const updated = await db.resource.update({
       where: { id: resourceId },
-      data: {
-        ...(status && { status }),
-        ...(name && { name }),
-        ...(defaultPrice && { defaultPrice }),
-      },
+      data: updateData,
     });
 
     return NextResponse.json({ success: true, resource: updated });
   } catch (error: any) {
-    return NextResponse.json({ success: false, error: "Failed to update resource" }, { status: 500 });
+    console.error("Update resource error:", error);
+    return NextResponse.json(
+      { success: false, error: error.message || "Failed to update resource" },
+      { status: 500 }
+    );
   }
 }
 
@@ -66,6 +80,7 @@ export async function DELETE(
 
     return NextResponse.json({ success: true });
   } catch (error: any) {
+    console.error("Delete court error:", error);
     return NextResponse.json(
       { success: false, error: error.message || "Failed to delete court" },
       { status: 500 }

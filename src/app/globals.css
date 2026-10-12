@@ -3,52 +3,53 @@
 @theme {
   --font-sans: var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, "SFMono-Regular", Menlo, Monaco, Consolas, monospace;
+  --color-neon: #79FE0C;
 }
 
 @layer base {
   :root {
-    --background: 210 40% 98%;
-    --foreground: 222 47% 11%;
-    --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
-    --primary: 160 84% 39%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222 47% 11%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 160 84% 39%;
-    --accent-foreground: 0 0% 100%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 160 84% 39%;
-    --radius: 0.75rem;
-  }
-
-  .dark {
     --background: 224 71% 4%;
-    --foreground: 213 31% 91%;
+    --foreground: 213 31% 96%;
     --card: 224 71% 7%;
-    --card-foreground: 213 31% 91%;
+    --card-foreground: 213 31% 96%;
     --popover: 224 71% 7%;
-    --popover-foreground: 213 31% 91%;
-    --primary: 160 84% 45%;
+    --popover-foreground: 213 31% 96%;
+    --primary: 93 99% 52%;
     --primary-foreground: 222 47% 11%;
     --secondary: 222 47% 11%;
     --secondary-foreground: 210 40% 98%;
     --muted: 223 47% 11%;
     --muted-foreground: 215.4 16.3% 56.9%;
-    --accent: 160 84% 45%;
+    --accent: 93 99% 52%;
     --accent-foreground: 222 47% 11%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
     --border: 216 34% 17%;
     --input: 216 34% 17%;
-    --ring: 160 84% 45%;
+    --ring: 93 99% 52%;
+    --radius: 0.75rem;
+  }
+
+  .dark {
+    --background: 224 71% 4%;
+    --foreground: 213 31% 96%;
+    --card: 224 71% 7%;
+    --card-foreground: 213 31% 96%;
+    --popover: 224 71% 7%;
+    --popover-foreground: 213 31% 96%;
+    --primary: 93 99% 52%;
+    --primary-foreground: 222 47% 11%;
+    --secondary: 222 47% 11%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 223 47% 11%;
+    --muted-foreground: 215.4 16.3% 56.9%;
+    --accent: 93 99% 52%;
+    --accent-foreground: 222 47% 11%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 216 34% 17%;
+    --input: 216 34% 17%;
+    --ring: 93 99% 52%;
   }
 }
 
@@ -59,8 +60,8 @@
 
 body {
   font-family: var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  color: #0f172a;
-  background-color: #f8fafc;
+  color: #f8fafc;
+  background-color: #000000;
   min-height: 100vh;
   margin: 0;
   padding: 0;
@@ -106,14 +107,14 @@ table td,
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: #020617;
 }
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: #334155;
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: #475569;
 }
 
 /* Mobile tap target utility */
@@ -144,43 +145,43 @@ table td,
   background-image: linear-gradient(
     90deg,
     rgba(255, 255, 255, 0) 0,
-    rgba(255, 255, 255, 0.4) 20%,
-    rgba(255, 255, 255, 0.7) 60%,
+    rgba(255, 255, 255, 0.1) 20%,
+    rgba(255, 255, 255, 0.2) 60%,
     rgba(255, 255, 255, 0)
   );
   animation: shimmer 1.5s infinite;
   content: "";
 }
 
-/* --- Pastel Bento Theme Utilities --- */
+/* --- Dark Bento Theme Utilities --- */
 
 .bento-card-lavender {
-  background-color: #f5f3ff; /* violet-50 */
-  border: 1px solid #ede9fe; /* violet-100 */
-  color: #4c1d95; /* violet-900 */
+  background: linear-gradient(180deg, #130f24 0%, #0d0a18 100%);
+  border: 1px solid #281d45;
+  color: #f1f5f9;
 }
 
 .bento-card-mint {
-  background-color: #ecfdf5; /* emerald-50 */
-  border: 1px solid #d1fae5; /* emerald-100 */
-  color: #064e3b; /* emerald-900 */
+  background: linear-gradient(180deg, #091712 0%, #06100c 100%);
+  border: 1px solid #143522;
+  color: #f1f5f9;
 }
 
 .bento-card-sky {
-  background-color: #f0f9ff; /* sky-50 */
-  border: 1px solid #e0f2fe; /* sky-100 */
-  color: #0c4a6e; /* sky-900 */
+  background: linear-gradient(180deg, #091522 0%, #060e18 100%);
+  border: 1px solid #132e48;
+  color: #f1f5f9;
 }
 
 .bento-card-peach {
-  background-color: #fffbeb; /* amber-50 */
-  border: 1px solid #fef3c7; /* amber-100 */
-  color: #78350f; /* amber-900 */
+  background: linear-gradient(180deg, #1a1208 0%, #120c04 100%);
+  border: 1px solid #3c250d;
+  color: #f1f5f9;
 }
 
 .lime-active-pill {
-  background-color: #bef264; /* lime-300/400 */
-  color: #020617; /* slate-950 */
+  background-color: #79FE0C;
+  color: #020617;
   font-weight: 700;
 }
 

@@ -20,6 +20,20 @@ export const metadata: Metadata = {
   title: "Badminton Academy | Book Badminton Courts",
   description:
     "Fast, effortless slot booking for badminton courts and academies. No app download or account required.",
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      { url: "/android-chrome-192x192.png", sizes: "192x192", type: "image/png" },
+      { url: "/android-chrome-512x512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [
+      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+    ],
+    shortcut: "/favicon.ico",
+  },
+  manifest: "/site.webmanifest",
 };
 
 export const viewport: Viewport = {
@@ -49,7 +63,7 @@ export default async function RootLayout({
 
   return (
     <html lang="en" className={`h-full ${geistSans.variable} ${geistMono.variable}`}>
-      <body className={`h-full antialiased bg-slate-50 text-slate-900 selection:bg-emerald-100 selection:text-emerald-900 ${themeClass}`}>
+      <body className={`h-full antialiased bg-black text-slate-100 selection:bg-[#79FE0C] selection:text-black ${themeClass}`}>
         {children}
       </body>
     </html>

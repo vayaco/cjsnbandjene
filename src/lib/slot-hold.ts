@@ -172,7 +172,7 @@ export async function createSlotHold(params: CreateSlotHoldParams): Promise<Slot
         customerName,
         customerPhone,
       };
-    });
+    }, { maxWait: 15000, timeout: 25000 });
 
     const remainingSeconds = Math.max(0, Math.floor((expiresAt.getTime() - Date.now()) / 1000));
 

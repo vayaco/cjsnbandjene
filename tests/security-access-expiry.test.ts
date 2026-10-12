@@ -113,7 +113,7 @@ async function runSecurityAccessExpiryTests() {
   });
   assert(holdRes.success === false, "Hold on date outside 7-day window must be rejected");
   assert(
-    holdRes.error?.includes("no longer available") || holdRes.error?.includes("window"),
+    Boolean(holdRes.error?.includes("no longer available") || holdRes.error?.includes("window")),
     "Hold rejected with 7-day booking window violation message"
   );
 
@@ -133,7 +133,7 @@ async function runSecurityAccessExpiryTests() {
   });
   assert(noEmailResult.success === false, "createBooking without email must be rejected");
   assert(
-    noEmailResult.error?.includes("email") || noEmailResult.error?.includes("invoice"),
+    Boolean(noEmailResult.error?.includes("email") || noEmailResult.error?.includes("invoice")),
     "Booking rejected when customer email is empty"
   );
 

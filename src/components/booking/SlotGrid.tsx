@@ -29,7 +29,7 @@ export function SlotGrid({
       {/* Resource (Court) Selection Pills */}
       <div>
         <div className="flex items-center justify-between mb-2 px-1">
-          <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
+          <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
             Select Court
           </span>
           <span className="text-xs text-slate-400 font-medium">
@@ -47,19 +47,19 @@ export function SlotGrid({
                 key={res.resourceId}
                 onClick={() => onSelectResource(res.resourceId)}
                 className={cn(
-                  "flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl border text-xs sm:text-sm font-bold whitespace-nowrap transition-all duration-150 select-none shrink-0",
+                  "flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl border text-xs sm:text-sm font-bold whitespace-nowrap transition-all duration-150 select-none shrink-0 cursor-pointer",
                   isSelected
-                    ? "bg-slate-900 border-slate-900 text-white shadow-sm"
-                    : "bg-white border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50"
+                    ? "bg-[#79FE0C] border-[#79FE0C] text-black shadow-[0_0_15px_rgba(121,254,12,0.3)] font-extrabold"
+                    : "bg-slate-950 border-slate-800 text-slate-300 hover:border-slate-700 hover:bg-slate-900"
                 )}
               >
                 <span>{res.resourceName}</span>
                 <span
                   className={cn(
-                    "text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded-full font-medium",
+                    "text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded-full font-bold",
                     isSelected
-                      ? "bg-emerald-500 text-white"
-                      : "bg-emerald-50 text-emerald-700"
+                      ? "bg-black/20 text-black"
+                      : "bg-[#79FE0C]/15 text-[#79FE0C] border border-[#79FE0C]/30"
                   )}
                 >
                   {availableCount} open
@@ -71,21 +71,21 @@ export function SlotGrid({
       </div>
 
       {/* Legend */}
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 py-1.5 px-2.5 text-[11px] sm:text-xs font-medium text-slate-500 bg-white/70 border border-slate-200/60 rounded-xl">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 py-1.5 px-2.5 text-[11px] sm:text-xs font-medium text-slate-400 bg-slate-950/90 border border-slate-800 rounded-xl">
         <div className="flex items-center gap-1.5">
-          <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 border border-emerald-600 shrink-0" />
+          <span className="w-2.5 h-2.5 rounded-full bg-[#79FE0C] shadow-[0_0_6px_#79FE0C] shrink-0" />
           <span>Available</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="w-2.5 h-2.5 rounded-full bg-slate-900 shrink-0" />
+          <span className="w-2.5 h-2.5 rounded-full bg-white shrink-0" />
           <span>Selected</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="w-2.5 h-2.5 rounded-full bg-slate-200 border border-slate-300 shrink-0" />
+          <span className="w-2.5 h-2.5 rounded-full bg-slate-700 border border-slate-600 shrink-0" />
           <span>Booked</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="w-2.5 h-2.5 rounded-full bg-amber-100 border border-amber-300 shrink-0" />
+          <span className="w-2.5 h-2.5 rounded-full bg-amber-400 border border-amber-500 shrink-0" />
           <span>Held</span>
         </div>
       </div>
@@ -108,49 +108,49 @@ export function SlotGrid({
                   disabled={!isAvailable}
                   onClick={() => onSelectSlot(slot)}
                   className={cn(
-                    "relative flex flex-col p-2.5 sm:p-3 rounded-xl sm:rounded-2xl border text-left transition-all duration-150 select-none tap-target",
+                    "relative flex flex-col p-2.5 sm:p-3 rounded-xl sm:rounded-2xl border text-left transition-all duration-150 select-none tap-target cursor-pointer",
                     isSelected
-                      ? "bg-slate-900 border-slate-900 text-white shadow-lg ring-2 ring-emerald-500 scale-[1.02]"
+                      ? "bg-slate-900 border-[#79FE0C] text-white shadow-[0_0_20px_rgba(121,254,12,0.35)] ring-2 ring-[#79FE0C] scale-[1.02]"
                       : isAvailable
-                      ? "bg-white border-slate-200 hover:border-emerald-400 hover:shadow-sm active:scale-[0.98]"
+                      ? "bg-slate-950 border-slate-800 hover:border-[#79FE0C] hover:shadow-[0_0_15px_rgba(121,254,12,0.2)] active:scale-[0.98] text-white"
                       : isBooked
-                      ? "bg-slate-100 border-slate-200/80 text-slate-400 cursor-not-allowed opacity-75"
+                      ? "bg-slate-950/40 border-slate-900 text-slate-600 cursor-not-allowed opacity-50"
                       : isHeld
-                      ? "bg-amber-50/80 border-amber-200 text-amber-800 cursor-not-allowed"
+                      ? "bg-amber-950/30 border-amber-850 text-amber-400 cursor-not-allowed"
                       : isBlocked && slot.blockedReason === "Court Under Maintenance"
-                      ? "bg-[repeating-linear-gradient(45deg,#f1f5f9,#f1f5f9_10px,#f8fafc_10px,#f8fafc_20px)] border-slate-300 text-slate-400 cursor-not-allowed opacity-80"
-                      : "bg-slate-50 border-slate-200 text-slate-400 cursor-not-allowed opacity-60"
+                      ? "bg-slate-950 border-slate-850 text-slate-600 cursor-not-allowed opacity-70"
+                      : "bg-slate-950/40 border-slate-900 text-slate-600 cursor-not-allowed opacity-50"
                   )}
                 >
                   <div className="flex items-center justify-between w-full">
                     <span
                       className={cn(
-                        "text-xs font-semibold font-mono tabular-nums",
-                        isSelected ? "text-slate-200" : isAvailable ? "text-slate-900" : "text-slate-400"
+                        "text-xs font-bold font-mono tabular-nums",
+                        isSelected ? "text-[#79FE0C]" : isAvailable ? "text-white" : "text-slate-500"
                       )}
                     >
                       {formatTime(slot.startTime)}
                     </span>
                     {isSelected ? (
-                      <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                      <CheckCircle2 className="w-4 h-4 text-[#79FE0C]" />
                     ) : isAvailable ? (
-                      <span className="text-[10px] uppercase font-semibold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-md">
+                      <span className="text-[10px] uppercase font-bold text-[#79FE0C] bg-[#79FE0C]/10 border border-[#79FE0C]/30 px-1.5 py-0.5 rounded-md">
                         Open
                       </span>
                     ) : isBooked ? (
-                      <span className="text-[10px] uppercase font-semibold text-slate-400">
+                      <span className="text-[10px] uppercase font-semibold text-slate-500">
                         Booked
                       </span>
                     ) : isHeld ? (
-                      <span className="text-[10px] uppercase font-semibold text-amber-700">
+                      <span className="text-[10px] uppercase font-semibold text-amber-400">
                         Holding
                       </span>
                     ) : isBlocked && slot.blockedReason === "Court Under Maintenance" ? (
-                      <span className="text-[10px] uppercase font-semibold text-slate-500 bg-slate-200 px-1.5 py-0.5 rounded-md">
+                      <span className="text-[10px] uppercase font-semibold text-slate-500 bg-slate-900 px-1.5 py-0.5 rounded-md">
                         Maintenance
                       </span>
                     ) : (
-                      <span className="text-[10px] uppercase font-semibold text-slate-400">
+                      <span className="text-[10px] uppercase font-semibold text-slate-500">
                         {isPast ? "Passed" : "Blocked"}
                       </span>
                     )}
@@ -159,8 +159,8 @@ export function SlotGrid({
                   <div className="mt-2 flex items-baseline justify-between w-full">
                     <span
                       className={cn(
-                        "text-sm font-semibold tracking-tight tabular-nums",
-                        isSelected ? "text-emerald-400" : isAvailable ? "text-emerald-700" : "text-slate-400"
+                        "text-sm font-bold tracking-tight tabular-nums",
+                        isSelected ? "text-[#79FE0C]" : isAvailable ? "text-[#79FE0C]" : "text-slate-600"
                       )}
                     >
                       {formatCurrency(slot.price)}
@@ -168,7 +168,7 @@ export function SlotGrid({
                     <span
                       className={cn(
                         "text-[10px]",
-                        isSelected ? "text-slate-400" : "text-slate-400"
+                        isSelected ? "text-slate-300" : "text-slate-500"
                       )}
                     >
                       60 mins
@@ -180,8 +180,8 @@ export function SlotGrid({
           </div>
         </div>
       ) : (
-        <div className="text-center py-12 bg-white rounded-2xl border border-slate-200 p-6">
-          <p className="text-slate-500 font-medium">No courts available for this venue.</p>
+        <div className="text-center py-12 bg-slate-950 rounded-2xl border border-slate-800 p-6">
+          <p className="text-slate-400 font-medium">No courts available for this venue.</p>
         </div>
       )}
     </div>

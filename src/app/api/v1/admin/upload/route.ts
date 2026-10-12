@@ -7,7 +7,7 @@ import crypto from "crypto";
 export async function POST(request: NextRequest) {
   try {
     const user = await getCurrentUser();
-    if (!user || (user.role !== "super_admin" && user.role !== "venue_manager")) {
+    if (!user || !["super_admin", "admin", "venue_manager"].includes(user.role)) {
       return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
     }
 

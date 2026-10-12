@@ -8,7 +8,7 @@ export async function PATCH(
 ) {
   try {
     const user = await getCurrentUser();
-    if (!user || user.role !== "super_admin") {
+    if (!user || !["super_admin", "admin"].includes(user.role)) {
       return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 403 });
     }
 
@@ -27,14 +27,14 @@ export async function PATCH(
     const updated = await db.venue.update({
       where: { id: venueId },
       data: {
-        ...(name && { name }),
-        ...(address && { address }),
-        ...(city && { city }),
-        ...(phone !== undefined && { phone }),
-        ...(openTime && { openTime }),
-        ...(closeTime && { closeTime }),
-        ...(imageUrl !== undefined && { imageUrl }),
-        ...(description !== undefined && { description }),
+        ...(name?.trim() && { name: name.trim() }),
+        ...(address?.trim() && { address: address.trim() }),
+        ...(city?.trim() && { city: city.trim() }),
+        ...(phone !== undefined && { phone: phone ? phone.trim() : null }),
+        ...(openTime?.trim() && { openTime: openTime.trim() }),
+        ...(closeTime?.trim() && { closeTime: closeTime.trim() }),
+        ...(imageUrl !== undefined && { imageUrl: imageUrl ? imageUrl.trim() : null }),
+        ...(description !== undefined && { description: description ? description.trim() : null }),
         ...(status && { status }),
       },
     });
@@ -55,7 +55,7 @@ export async function DELETE(
 ) {
   try {
     const user = await getCurrentUser();
-    if (!user || user.role !== "super_admin") {
+    if (!user || !["super_admin", "admin"].includes(user.role)) {
       return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 403 });
     }
 
@@ -75,6 +75,7 @@ export async function DELETE(
 
     return NextResponse.json({ success: true });
   } catch (error: any) {
+    console.error("Venue deletion error:", error);
     return NextResponse.json(
       { success: false, error: error.message || "Failed to delete venue" },
       { status: 500 }

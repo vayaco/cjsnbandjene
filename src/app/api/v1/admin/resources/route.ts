@@ -12,8 +12,11 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { venueId, name, defaultPrice = 500, capacity = 4, resourceType = "court" } = body;
 
-    if (!venueId || !name) {
-      return NextResponse.json({ success: false, error: "Venue ID and Court Name are required" }, { status: 400 });
+    if (!venueId || !name?.trim()) {
+      return NextResponse.json(
+        { success: false, error: "Venue ID and Court Name are required" },
+        { status: 400 }
+      );
     }
 
     const venue = await db.venue.findUnique({
@@ -28,14 +31,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: "Unauthorized for this venue" }, { status: 403 });
     }
 
+    const parsedPrice = Number(defaultPrice);
+    const validPrice = !isNaN(parsedPrice) && parsedPrice >= 0 ? parsedPrice : 500;
+    const parsedCapacity = Number(capacity);
+    const validCapacity = !isNaN(parsedCapacity) && parsedCapacity >= 1 ? parsedCapacity : 4;
+
     const resource = await db.resource.create({
       data: {
         venueId,
         businessId: user.businessId,
         name: name.trim(),
-        defaultPrice: Number(defaultPrice) || 500,
-        capacity: Number(capacity) || 4,
-        resourceType,
+        defaultPrice: validPrice,
+        capacity: validCapacity,
+        resourceType: resourceType || "court",
         status: "active",
       },
     });

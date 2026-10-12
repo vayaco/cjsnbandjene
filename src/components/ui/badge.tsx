@@ -8,19 +8,19 @@ const badgeVariants = cva(
     variants: {
       variant: {
         default:
-          "border-transparent bg-emerald-100 text-emerald-800",
+          "border-transparent bg-[#79FE0C]/15 text-[#79FE0C] border border-[#79FE0C]/30",
         secondary:
-          "border-transparent bg-slate-100 text-slate-800",
+          "border-transparent bg-slate-800 text-slate-200",
         destructive:
-          "border-transparent bg-rose-100 text-rose-800",
+          "border-transparent bg-rose-950/60 text-rose-300 border border-rose-800/60",
         outline:
-          "text-slate-950 border border-slate-200",
+          "text-slate-200 border border-slate-800",
         warning:
-          "border-transparent bg-amber-100 text-amber-800",
+          "border-transparent bg-amber-950/60 text-amber-300 border border-amber-800/60",
         info:
-          "border-transparent bg-blue-100 text-blue-800",
+          "border-transparent bg-sky-950/60 text-sky-300 border border-sky-800/60",
         purple:
-          "border-transparent bg-purple-100 text-purple-800",
+          "border-transparent bg-purple-950/60 text-purple-300 border border-purple-800/60",
       },
     },
     defaultVariants: {

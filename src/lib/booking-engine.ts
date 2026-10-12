@@ -280,7 +280,7 @@ export async function createBooking(params: CreateBookingParams): Promise<Bookin
       const tokens = await createBookingAccessTokens(booking.id, booking.createdAt, tx);
 
       return { booking, tokens };
-    });
+    }, { maxWait: 15000, timeout: 25000 });
 
     if (bookingStatus === "confirmed" && paymentStatus === "successful") {
       sendBookingConfirmationNotification(result.booking.id).catch((err) => {
@@ -382,7 +382,7 @@ export async function cancelBooking(bookingId: string, reason?: string, cancelle
         refundPercent,
         refundAmount,
       };
-    });
+    }, { maxWait: 15000, timeout: 25000 });
   } catch (err: any) {
     return { success: false, error: err.message || "Failed to cancel booking." };
   }
@@ -502,7 +502,7 @@ export async function confirmBookingPayment(params: ConfirmPaymentParams) {
     });
 
     return { success: true, booking: updatedBooking };
-  });
+  }, { maxWait: 15000, timeout: 25000 });
 
   if (result.success && result.booking) {
     sendBookingConfirmationNotification(bookingId).catch((err) => {
